@@ -132,12 +132,11 @@ public class MatchmakingManager : MonoBehaviour
     }
 
     // --- [2. 클라이언트: 접속] ---
-    // 파라미터도 Lobby 대신 LobbyModel 사용
     private async Task JoinExistingLobby(LobbyModel lobby)
     {
         try
         {
-            // A. 로비 접속
+            // 로비 접속
             LobbyModel joinedLobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobby.Id);
             string joinCode = joinedLobby.Data["JoinCode"].Value;
 
