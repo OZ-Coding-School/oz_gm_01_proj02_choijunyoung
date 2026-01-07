@@ -1448,7 +1448,7 @@ PrefabInstance:
       addedObject: {fileID: 7544564447613308021}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 9e1731dd636f6874eb5a9435655f8273, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 8784143006418603591}
+      addedObject: {fileID: -3030329468864221099}
   m_SourcePrefab: {fileID: 100100000, guid: 9e1731dd636f6874eb5a9435655f8273, type: 3}
 --- !u!4 &326238415784019165 stripped
 Transform:
@@ -1552,10 +1552,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 0
+  GlobalObjectIdHash: 651350554
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
-  Ownership: 1
+  Ownership: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
   ActiveSceneSynchronization: 0
@@ -1565,7 +1565,7 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
---- !u!114 &8784143006418603591
+--- !u!114 &-3030329468864221099
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1574,9 +1574,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 8904481353477386477}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e3624746de8311d459b8940c18cd752f, type: 3}
+  m_Script: {fileID: 11500000, guid: b31260950756fda40850801b349eafb8, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ClientNetworkTransform
+  m_EditorClassIdentifier: Assembly-CSharp::TestPlayerController
   ShowTopMostFoldoutHeaderGroup: 1
   NetworkTransformExpanded: 0
   AutoOwnerAuthorityTickOffset: 1
@@ -1611,3 +1611,6 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+  PlayerCubeControllerPropertiesVisible: 0
+  Speed: 10
+  ApplyVerticalInputToZAxis: 0
