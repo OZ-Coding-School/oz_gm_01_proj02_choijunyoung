@@ -20,6 +20,7 @@ public class LogInSystem : MonoBehaviour
 
     public TextMeshProUGUI inLobbyUserIDText;
 
+    
     void Start()
     {
         FirebaseAuthManager.Instance.LoginState += OnChangeState;

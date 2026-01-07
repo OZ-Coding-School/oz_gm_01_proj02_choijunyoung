@@ -1,20 +1,22 @@
 using System;
-using System.Threading.Tasks;
-using Unity.Netcode;
+using System.Collections;      
+using System.Threading.Tasks;   
+using Unity.Netcode;            
 using Unity.Services.Authentication;
 using Unity.Services.Core;
-using Unity.Services.Multiplayer;
+using Unity.Services.Multiplayer; 
 using UnityEngine;
-using UnityEngine.UIElements;
 
-public class ConnectionManager : MonoBehaviour
+public class MatchMaking : MonoBehaviour
 {
+    const string gameSceneName = "GameScene";
     private string _profileName;
-    private string _sessionName;
-    private int _maxPlayers = 10;
+    private string _sessionName = "blank";
+    private int _maxPlayers = 4;
     private ConnectionState _state = ConnectionState.Disconnected;
     private ISession _session;
     private NetworkManager m_NetworkManager;
+    public CreateSessionByGoogle createSessionByGoogle;
 
     private enum ConnectionState
     {
@@ -47,31 +49,12 @@ public class ConnectionManager : MonoBehaviour
         }
     }
 
-    private void OnGUI()
+    public void OnPlayButtonClicked()
     {
-        if (_state == ConnectionState.Connected)
-            return;
-
-        GUI.enabled = _state != ConnectionState.Connecting;
-
-        using (new GUILayout.HorizontalScope(GUILayout.Width(250)))
+        createSessionByGoogle.RequestSessionId((id, count) =>
         {
-            GUILayout.Label("Profile Name", GUILayout.Width(100));
-            _profileName = GUILayout.TextField(_profileName);
-        }
-
-        using (new GUILayout.HorizontalScope(GUILayout.Width(250)))
-        {
-            GUILayout.Label("Session Name", GUILayout.Width(100));
-            _sessionName = GUILayout.TextField(_sessionName);
-        }
-
-        GUI.enabled = GUI.enabled && !string.IsNullOrEmpty(_profileName) && !string.IsNullOrEmpty(_sessionName);
-
-        if (GUILayout.Button("Create or Join Session"))
-        {
-            CreateOrJoinSessionAsync();
-        }
+            SetSessionInfo(id, count);
+        });
     }
 
     private void OnDestroy()
@@ -79,12 +62,53 @@ public class ConnectionManager : MonoBehaviour
         _session?.LeaveAsync();
     }
 
+    public void SetSessionInfo(string id, int currentCount)
+    {
+        _sessionName = id;
+
+        if (currentCount >= 2)
+        {
+            Debug.Log($"현재 인원 {currentCount}명. 접속");
+            CreateOrJoinSessionAsync();
+        }
+        else
+        {
+            Debug.Log($"현재 인원 {currentCount}명. 상대방을 기다립니다.");
+            StartCoroutine(WaitForOpponent(id));
+        }
+    }
+
+    private IEnumerator WaitForOpponent(string id)
+    {
+        bool isReady = false;
+
+        while (!isReady)
+        {
+            // 2초마다 확인
+            yield return new WaitForSeconds(2.0f);
+
+            // 상태 체크 요청
+            createSessionByGoogle.CheckSessionCount(id, (count) =>
+            {
+                Debug.Log($"대기 중... 현재 인원: {count}");
+                if (count >= 2)
+                {
+                    isReady = true;
+                }
+            });
+
+            // 콜백 완료 대기
+            yield return null;
+        }
+
+        Debug.Log("세션에 접속합니다.");
+        CreateOrJoinSessionAsync();
+    }
+
     private async Task CreateOrJoinSessionAsync()
     {
         _state = ConnectionState.Connecting;
-        _profileName = FirebaseAuthManager.Instance.UserId;  // 사용자 ID를 프로필 이름으로 설정
-        _sessionName = GetRandomId(); // 랜덤 세션 이름 생성
-
+        _profileName = FirebaseAuthManager.Instance.UserId;
         try
         {
             AuthenticationService.Instance.SwitchProfile(_profileName);
@@ -99,31 +123,20 @@ public class ConnectionManager : MonoBehaviour
             _session = await MultiplayerService.Instance.CreateOrJoinSessionAsync(_sessionName, options);
 
             _state = ConnectionState.Connected;
+            if (m_NetworkManager.IsServer)
+            {
+                var status = m_NetworkManager.SceneManager.LoadScene(gameSceneName, UnityEngine.SceneManagement.LoadSceneMode.Single);
+                if (status != SceneEventProgressStatus.Started)
+                {
+                    Debug.LogWarning($"씬 로드 실패: {status}");
+                }
+            }
+
         }
         catch (Exception e)
         {
             _state = ConnectionState.Disconnected;
             Debug.LogException(e);
         }
-    }
-
-    public string GetRandomId(int length = 5)
-    {
-        // 1. 사용할 문자 집합 정의 (소문자 + 숫자)
-        const string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-
-        // 2. 결과물을 담을 문자 배열 생성
-        char[] stringChars = new char[length];
-
-        // 3. 길이만큼 반복하며 랜덤 문자 뽑기
-        for (int i = 0; i < length; i++)
-        {
-            // UnityEngine.Random을 사용하여 인덱스 랜덤 선택
-            int randomIndex = UnityEngine.Random.Range(0, chars.Length);
-            stringChars[i] = chars[randomIndex];
-        }
-
-        // 4. 문자 배열을 문자열로 변환하여 반환
-        return new string(stringChars);
     }
 }

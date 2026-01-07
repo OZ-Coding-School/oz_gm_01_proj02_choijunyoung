@@ -3888,54 +3888,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 962225061}
   m_CullTransparentMesh: 1
---- !u!1 &963433336
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 963433338}
-  - component: {fileID: 963433337}
-  m_Layer: 0
-  m_Name: MatchMakingManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &963433337
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 963433336}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0b118960f348df5448b53614b68eb92a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MatchmakingManager
-  gameSceneName: GameScene
-  maxPlayers: 4
-  lobbyNamePrefix: Session_
-  minPlayersToStart: 2
---- !u!4 &963433338
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 963433336}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1304.4578, y: 0, z: 3795.8042}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &975758131
 GameObject:
   m_ObjectHideFlags: 0
@@ -5846,6 +5798,8 @@ GameObject:
   - component: {fileID: 1327319253}
   - component: {fileID: 1327319255}
   - component: {fileID: 1327319254}
+  - component: {fileID: 1327319256}
+  - component: {fileID: 1327319257}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -5913,7 +5867,7 @@ MonoBehaviour:
   NetworkConfig:
     ProtocolVersion: 0
     NetworkTransport: {fileID: 1327319254}
-    PlayerPrefab: {fileID: 0}
+    PlayerPrefab: {fileID: 8904481353477386477, guid: 00cd28f6e1a05134a8516feaae328210, type: 3}
     Prefabs:
       NetworkPrefabsLists:
       - {fileID: 11400000, guid: 86b25392e63b29b4fa7784c8252d9e86, type: 2}
@@ -5940,6 +5894,32 @@ MonoBehaviour:
     OldPrefabList: []
   RunInBackground: 1
   LogLevel: 1
+--- !u!114 &1327319256
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1327319252}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92dff166917dc394fa05a7f2d27a299c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MatchMaking
+  createSessionByGoogle: {fileID: 1327319257}
+--- !u!114 &1327319257
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1327319252}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 343ff874e790aba4b92277b92297f2f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CreateSessionByGoogle
+  matchMaking: {fileID: 1327319256}
 --- !u!1 &1419165983
 GameObject:
   m_ObjectHideFlags: 0
@@ -6628,8 +6608,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 963433337}
-        m_TargetAssemblyTypeName: MatchmakingManager, Assembly-CSharp
+      - m_Target: {fileID: 1327319256}
+        m_TargetAssemblyTypeName: MatchMaking, Assembly-CSharp
         m_MethodName: OnPlayButtonClicked
         m_Mode: 1
         m_Arguments:
@@ -9180,5 +9160,4 @@ SceneRoots:
   - {fileID: 2001711142}
   - {fileID: 365710593}
   - {fileID: 1327319253}
-  - {fileID: 963433338}
   - {fileID: 1510386926}
