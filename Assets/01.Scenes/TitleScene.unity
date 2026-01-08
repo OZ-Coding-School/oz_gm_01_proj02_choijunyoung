@@ -5888,7 +5888,7 @@ MonoBehaviour:
     EnableNetworkLogs: 1
     NetworkTopology: 1
     UseCMBService: 0
-    AutoSpawnPlayerPrefabClientSide: 1
+    AutoSpawnPlayerPrefabClientSide: 0
     NetworkMessageMetrics: 1
     NetworkProfilingMetrics: 1
     OldPrefabList: []
@@ -5906,6 +5906,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92dff166917dc394fa05a7f2d27a299c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MatchMaking
+  playerPrefab: {fileID: 8904481353477386477, guid: 00cd28f6e1a05134a8516feaae328210, type: 3}
   createSessionByGoogle: {fileID: 1327319257}
 --- !u!114 &1327319257
 MonoBehaviour:

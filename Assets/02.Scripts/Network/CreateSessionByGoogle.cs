@@ -8,6 +8,7 @@ public class SessionResponse
 {
     public string id;
     public int count;
+    public bool isCreator;
 }
 
 public class CreateSessionByGoogle : MonoBehaviour
@@ -15,8 +16,7 @@ public class CreateSessionByGoogle : MonoBehaviour
     const string URL = "https://script.google.com/macros/s/AKfycbwIfCXIm_1nF5EXzmwCKpqpqVmALhbTdYDN-H6XhZYCQLMo_4y-D-_eJYURwN3i9u55/exec";
     public MatchMaking matchMaking;
 
-
-    public void RequestSessionId(Action<string, int> onResult)
+    public void RequestSessionId(Action<string, int, bool> onResult)
     {
         StartCoroutine(GetSessionId(onResult));
     }
@@ -55,7 +55,7 @@ public class CreateSessionByGoogle : MonoBehaviour
         }
     }
 
-    public IEnumerator GetSessionId(Action<string, int> onResult)
+    public IEnumerator GetSessionId(Action<string, int, bool> onResult)
     {
         // 빈 방이 있는지 구글 시트에 물어보기
         WWWForm formCheck = new WWWForm();
@@ -83,14 +83,15 @@ public class CreateSessionByGoogle : MonoBehaviour
                 yield return StartCoroutine(RegisterNewSession(newId));
 
                 // 새로 만든 ID 리턴
-                onResult(newId,1);
+                onResult(newId,1,true);
             }
             else
             {
                 try
                 {
                     SessionResponse data = JsonUtility.FromJson<SessionResponse>(response);
-                    onResult(data.id, data.count);
+                    //data.isCreator = false;
+                    onResult(data.id, data.count,false);
                 }
                 catch(Exception e)
                 {

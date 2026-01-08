@@ -1,22 +1,27 @@
 using System;
-using System.Collections;      
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;   
 using Unity.Netcode;            
 using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Multiplayer; 
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MatchMaking : MonoBehaviour
 {
     const string gameSceneName = "GameScene";
+    public GameObject playerPrefab;
     private string _profileName;
     private string _sessionName = "blank";
     private int _maxPlayers = 4;
-    private ConnectionState _state = ConnectionState.Disconnected;
+
     private ISession _session;
     private NetworkManager m_NetworkManager;
     public CreateSessionByGoogle createSessionByGoogle;
+
+    private bool _isConnected = false;
 
     private enum ConnectionState
     {
@@ -28,92 +33,105 @@ public class MatchMaking : MonoBehaviour
     private async void Awake()
     {
         m_NetworkManager = GetComponent<NetworkManager>();
-        m_NetworkManager.OnClientConnectedCallback += OnClientConnectedCallback;
-        m_NetworkManager.OnSessionOwnerPromoted += OnSessionOwnerPromoted;
-        await UnityServices.InitializeAsync();
+        try
+        {
+            await UnityServices.InitializeAsync();
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+        }
+
     }
 
-    private void OnSessionOwnerPromoted(ulong sessionOwnerPromoted)
+    private void Start()
     {
-        if (m_NetworkManager.LocalClient.IsSessionOwner)
+        if(m_NetworkManager == null) m_NetworkManager = NetworkManager.Singleton;
+        
+        if(m_NetworkManager != null)
         {
-            Debug.Log($"Client-{m_NetworkManager.LocalClientId} is the session owner!");
+            m_NetworkManager.OnClientConnectedCallback += OnClientConnectedCallback;
+
+            if (m_NetworkManager.SceneManager != null) m_NetworkManager.SceneManager.OnLoadEventCompleted += OnLoadEventCompleted;
         }
+        
     }
+
 
     private void OnClientConnectedCallback(ulong clientId)
     {
-        if (m_NetworkManager.LocalClientId == clientId)
+        if(clientId == m_NetworkManager.LocalClientId)
         {
-            Debug.Log($"Client-{clientId} is connected and can spawn {nameof(NetworkObject)}s.");
+            var status = m_NetworkManager.SceneManager.LoadScene(gameSceneName, LoadSceneMode.Single);
+            if (status != SceneEventProgressStatus.Started)
+            {
+                Debug.Log("씬 로드 실패 : " + status);
+            }
+        }
+        else Debug.Log($"참가자(ID : {clientId})가 접속했습니다."); 
+
+       
+        
+    }
+
+    private void OnLoadEventCompleted(string sceneName, LoadSceneMode LSM, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
+    {
+        if(sceneName == gameSceneName)
+        {
+            foreach(ulong clientId in clientsCompleted)
+            {
+                if (m_NetworkManager.ConnectedClients.ContainsKey(clientId) && m_NetworkManager.ConnectedClients[clientId].PlayerObject == null)
+                {
+                    GameObject inst = Instantiate(playerPrefab);
+
+                    inst.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId, true);
+                }
+            }
         }
     }
 
+
     public void OnPlayButtonClicked()
     {
-        createSessionByGoogle.RequestSessionId((id, count) =>
+        createSessionByGoogle.RequestSessionId((id, count, isCreator) =>
         {
-            SetSessionInfo(id, count);
+            ConnectToSession(id, isCreator);
         });
     }
+
 
     private void OnDestroy()
     {
         _session?.LeaveAsync();
     }
 
-    public void SetSessionInfo(string id, int currentCount)
+    public async void ConnectToSession(string id, bool isCreator)
     {
         _sessionName = id;
-
-        if (currentCount >= 2)
+        Debug.Log($"세션 ID: {_sessionName}, 세션에 접속합니다. (생성자: {isCreator})");
+        
+        if (isCreator)
         {
-            Debug.Log($"현재 인원 {currentCount}명. 접속");
-            CreateOrJoinSessionAsync();
+            await CreateSessionRoutine();
         }
         else
         {
-            Debug.Log($"현재 인원 {currentCount}명. 상대방을 기다립니다.");
-            StartCoroutine(WaitForOpponent(id));
+            await JoinSessionRoutine();
         }
     }
 
-    private IEnumerator WaitForOpponent(string id)
+    private async Task JoinSessionRoutine()
     {
-        bool isReady = false;
-
-        while (!isReady)
-        {
-            // 2초마다 확인
-            yield return new WaitForSeconds(2.0f);
-
-            // 상태 체크 요청
-            createSessionByGoogle.CheckSessionCount(id, (count) =>
-            {
-                Debug.Log($"대기 중... 현재 인원: {count}");
-                if (count >= 2)
-                {
-                    isReady = true;
-                }
-            });
-
-            // 콜백 완료 대기
-            yield return null;
-        }
-
-        Debug.Log("세션에 접속합니다.");
-        CreateOrJoinSessionAsync();
-    }
-
-    private async Task CreateOrJoinSessionAsync()
-    {
-        _state = ConnectionState.Connecting;
+        if(_isConnected) return;
         _profileName = FirebaseAuthManager.Instance.UserId;
+
         try
         {
-            AuthenticationService.Instance.SwitchProfile(_profileName);
-            await AuthenticationService.Instance.SignInAnonymouslyAsync();
-
+            if (!AuthenticationService.Instance.IsSignedIn)
+            {
+                AuthenticationService.Instance.SwitchProfile(_profileName);
+                await AuthenticationService.Instance.SignInAnonymouslyAsync();
+            }
             var options = new SessionOptions()
             {
                 Name = _sessionName,
@@ -122,21 +140,48 @@ public class MatchMaking : MonoBehaviour
 
             _session = await MultiplayerService.Instance.CreateOrJoinSessionAsync(_sessionName, options);
 
-            _state = ConnectionState.Connected;
-            if (m_NetworkManager.IsServer)
-            {
-                var status = m_NetworkManager.SceneManager.LoadScene(gameSceneName, UnityEngine.SceneManagement.LoadSceneMode.Single);
-                if (status != SceneEventProgressStatus.Started)
-                {
-                    Debug.LogWarning($"씬 로드 실패: {status}");
-                }
-            }
-
+            _isConnected = true;
+            Debug.Log("방 참가 완료(방이름 : " + _sessionName + ")");
+        }
+        catch (SessionException e)
+        {
+            Debug.LogWarning($"접속 실패 ({e.Message}). 방장이 아직 방을 안 만들었거나 나갔을 수 있습니다.");
+            _isConnected = false;
         }
         catch (Exception e)
         {
-            _state = ConnectionState.Disconnected;
             Debug.LogException(e);
+            _isConnected = false;
         }
     }
+
+    private async Task CreateSessionRoutine()
+    {
+        if (_isConnected) return;
+        _profileName = FirebaseAuthManager.Instance.UserId;
+        try
+        {
+            if (!AuthenticationService.Instance.IsSignedIn)
+            {
+                AuthenticationService.Instance.SwitchProfile(_profileName);
+                await AuthenticationService.Instance.SignInAnonymouslyAsync();
+            }
+            var options = new SessionOptions()
+            {
+                Name = _sessionName,
+                MaxPlayers = _maxPlayers
+            }.WithDistributedAuthorityNetwork();
+
+            _session = await MultiplayerService.Instance.CreateSessionAsync(options);
+            _isConnected = true;
+            Debug.Log($"세션에 접속했습니다: {_sessionName}");
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+            _isConnected = false;
+        }
+    }
+
+    
 }
