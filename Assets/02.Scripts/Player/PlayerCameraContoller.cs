@@ -8,6 +8,14 @@ public class PlayerCameraContoller : NetworkBehaviour
     [SerializeField] private CinemachineThirdPersonFollow thirdPersonFollow;
     private float targetSide = 1f;
 
+    [Header("Camera Settings")]
+    [SerializeField] private float mouseSensitivityX = 100f;   // 좌우 회전 감도
+    [SerializeField] private float mouseSensitivityY = 100f;   // 상하 회전 감도
+    [SerializeField] private float minPitch = -30f;             // 최소 상하 각도
+    [SerializeField] private float maxPitch = 60f;              // 최대 상하 각도
+
+    private float currentPitch = 0f;       // 현재 카메라 상하 각도
+
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.X))
@@ -15,6 +23,14 @@ public class PlayerCameraContoller : NetworkBehaviour
             targetSide = targetSide == 1f ? 0f : 1f;
         }
         thirdPersonFollow.CameraSide = Mathf.Lerp(thirdPersonFollow.CameraSide, targetSide, Time.deltaTime * 5f);
+
+        //float mouseX = Input.GetAxis("Mouse X") * mouseSensitivityX * Time.deltaTime;
+        //transform.Rotate(Vector3.up * mouseX);
+
+        //float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivityY * Time.deltaTime;
+        //currentPitch -= mouseY;
+        //currentPitch = Mathf.Clamp(currentPitch, minPitch, maxPitch);
+
     }
 
     public override void OnNetworkSpawn()
