@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Threading.Tasks;
+using TMPro;
 using Unity.Netcode;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
@@ -9,12 +11,16 @@ using UnityEngine.SceneManagement;
 
 public class Matching : MonoBehaviour
 {
-    private int _maxPlayers = 10;
+    private int _maxPlayers = 4;
     private ConnectionState _state = ConnectionState.Disconnected;
     private ISession _session;
     private NetworkManager m_NetworkManager;
     public CreateSessionByGoogle sessionFetcher;
     private const string gameSceneName = "GameScene";
+
+    [Header("MatchMaking UI Text")]
+    [SerializeField] TextMeshProUGUI matchTimer;
+    [SerializeField] TextMeshProUGUI matchTxt;
 
     private enum ConnectionState
     {
@@ -85,13 +91,15 @@ public class Matching : MonoBehaviour
 
     public void OnClickPlay()
     {
-        sessionFetcher.FetchSessionId((sessionId) =>
+        float timer = 0;
+        StartCoroutine( MatchTimer(timer));
+        sessionFetcher.FetchSessionId(async (sessionId) =>
         {
             if (sessionId != null)
             {
                 Debug.Log($"≮≮≮ 己傍! 技记 ID: {sessionId} ≮≮≮");
                 Debug.Log($"酒捞叼 : {FirebaseAuthManager.Instance.UserId} / 技记 : {sessionId}"); 
-                CreateOrJoinSessionAsync(FirebaseAuthManager.Instance.UserId, sessionId);
+                await CreateOrJoinSessionAsync(FirebaseAuthManager.Instance.UserId, sessionId);
             }
             else
             {
@@ -100,4 +108,23 @@ public class Matching : MonoBehaviour
         });
         
     }
+    
+    IEnumerator MatchTimer(float timer)
+    {
+        matchTimer.gameObject.SetActive(true);
+        matchTxt.gameObject.SetActive(true);
+
+        
+        while(_state != ConnectionState.Connected)
+        {
+            timer += Time.deltaTime;
+            string timeStr;
+            timeStr = string.Format("{0:D2}:{1:D2}", (int)(timer / 60), (int)(timer % 60));
+            matchTimer.text = timeStr;
+            yield return null;
+        }
+        matchTimer.gameObject.SetActive(false);
+        matchTxt.gameObject.SetActive(false);
+    }
+
 }
