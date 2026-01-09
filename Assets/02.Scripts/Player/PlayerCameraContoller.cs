@@ -4,7 +4,18 @@ using UnityEngine;
 
 public class PlayerCameraContoller : NetworkBehaviour
 {
-    [SerializeField] private CinemachineCamera playerCamera; 
+    [SerializeField] private CinemachineCamera playerCamera;
+    [SerializeField] private CinemachineThirdPersonFollow thirdPersonFollow;
+    private float targetSide = 1f;
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.X))
+        {
+            targetSide = targetSide == 1f ? 0f : 1f;
+        }
+        thirdPersonFollow.CameraSide = Mathf.Lerp(thirdPersonFollow.CameraSide, targetSide, Time.deltaTime * 5f);
+    }
 
     public override void OnNetworkSpawn()
     {
