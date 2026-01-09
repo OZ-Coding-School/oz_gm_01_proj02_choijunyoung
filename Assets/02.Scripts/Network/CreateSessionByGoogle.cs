@@ -1,139 +1,53 @@
 using System;
-using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
+using System.Collections;
 
 [Serializable]
 public class SessionResponse
 {
-    public string id;
+    public bool success;
+    public string session_id;
     public int count;
-    public bool isCreator;
+    public string message; // ÔøΩÔøΩÔøΩÔøΩ ÔøΩÔøΩ ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ (ÔøΩ…ºÔøΩ)
 }
 
 public class CreateSessionByGoogle : MonoBehaviour
 {
-    const string URL = "https://script.google.com/macros/s/AKfycbwIfCXIm_1nF5EXzmwCKpqpqVmALhbTdYDN-H6XhZYCQLMo_4y-D-_eJYURwN3i9u55/exec";
-    public MatchMaking matchMaking;
 
-    public void RequestSessionId(Action<string, int, bool> onResult)
+    private const string GET_URL = "https://script.google.com/macros/s/AKfycbyGm2jVx8_A4R7YxW2RlbKk_YHZ58QGIQlT_Z0HnB-LtL-APfFMuOqzGO95pvzAMEXu/exec";
+
+    
+    public void FetchSessionId(Action<string> onComplete)
     {
-        StartCoroutine(GetSessionId(onResult));
+        StartCoroutine(FetchRoutine(onComplete));
     }
 
-    // ∆Ø¡§ ººº«¿« ¿Œø¯ºˆ∏∏ »Æ¿Œ«œ¥¬ «‘ºˆ
-    public void CheckSessionCount(string sessionId, Action<int> onResult)
+    private IEnumerator FetchRoutine(Action<string> onComplete)
     {
-        StartCoroutine(GetSessionStatusRoutine(sessionId, onResult));
-    }
-
-    private IEnumerator GetSessionStatusRoutine(string sessionId, Action<int> onResult)
-    {
-        WWWForm form = new WWWForm();
-        form.AddField("session_id", sessionId);
-        form.AddField("mode", "check"); // ±∏±€Ω√∆Æ¬ ¿« CASE 0 Ω««‡
-
-        using (UnityWebRequest www = UnityWebRequest.Post(URL, form))
-        {
-            yield return www.SendWebRequest();
-
-            if (www.result == UnityWebRequest.Result.Success)
-            {
-                if (int.TryParse(www.downloadHandler.text, out int count))
-                {
-                    onResult(count);
-                }
-                else
-                {
-                    onResult(0);
-                }
-            }
-            else
-            {
-                onResult(0);
-            }
-        }
-    }
-
-    public IEnumerator GetSessionId(Action<string, int, bool> onResult)
-    {
-        // ∫Û πÊ¿Ã ¿÷¥¬¡ˆ ±∏±€ Ω√∆Æø° π∞æÓ∫∏±‚
-        WWWForm formCheck = new WWWForm();
-
-        using (UnityWebRequest www = UnityWebRequest.Post(URL, formCheck))
+        using (UnityWebRequest www = UnityWebRequest.Get(GET_URL))
         {
             yield return www.SendWebRequest();
 
             if (www.result != UnityWebRequest.Result.Success)
             {
-                Debug.LogError("¿• ≈ÎΩ≈ ø°∑Ø: " + www.error);
+                Debug.LogError("Session ID ÏöîÏ≤≠ Ïã§Ìå®: " + www.error);
+                onComplete?.Invoke(null);
                 yield break;
             }
 
-            string response = www.downloadHandler.text;
-            Debug.Log("º≠πˆ ¿¿¥‰: " + response);
+            string sessionId = www.downloadHandler.text.Trim();
 
-            // ¿¿¥‰ ∫–ºÆ "false"∞° ø‘¥Ÿ¥¬ ∞« -> πÊ¿Ã æ¯∞≈≥™ ≤À √°¥Ÿ¥¬ ∂Ê -> ªı∑Œ ∏∏µÈæÓæﬂ «‘
-            if (response == "false")
+            if (string.IsNullOrEmpty(sessionId) || sessionId == "error" || sessionId == "busy")
             {
-                Debug.Log("∫Û πÊ¿Ã æ¯Ω¿¥œ¥Ÿ. ªı∑ŒøÓ πÊ¿ª ª˝º∫«’¥œ¥Ÿ...");
-
-                // ªı ID ª˝º∫ π◊ µÓ∑œ ø‰√ª
-                string newId = GetRandomId(5);
-                yield return StartCoroutine(RegisterNewSession(newId));
-
-                // ªı∑Œ ∏∏µÁ ID ∏Æ≈œ
-                onResult(newId,1,true);
+                Debug.LogError("Ïú†Ìö®ÌïòÏßÄ ÏïäÏùÄ session_id: " + sessionId);
+                onComplete?.Invoke(null);
             }
             else
             {
-                try
-                {
-                    SessionResponse data = JsonUtility.FromJson<SessionResponse>(response);
-                    //data.isCreator = false;
-                    onResult(data.id, data.count,false);
-                }
-                catch(Exception e)
-                {
-                    Debug.LogError("¿¿¥‰ ∆ƒΩÃ ø¿∑˘: " + e.Message);
-                }
-                // "false"∞° æ∆¥œ∏È -> Session_ID∞° µπæ∆ø¬ ∞Õ¿” -> ±◊¥Î∑Œ ªÁøÎ
-                Debug.Log("∫Û πÊ¿ª √£æ“Ω¿¥œ¥Ÿ. «ÿ¥Á πÊ¿∏∑Œ ¿‘¿Â«’¥œ¥Ÿ.");
+                Debug.Log("Session ID ÌöçÎìù ÏÑ±Í≥µ: " + sessionId);
+                onComplete?.Invoke(sessionId);
             }
         }
-    }
-
-    // ªı∑ŒøÓ πÊ¿ª ±∏±€ Ω√∆Æø° µÓ∑œ«œ¥¬ º≠∫Í ∑Á∆æ
-    IEnumerator RegisterNewSession(string newId)
-    {
-        WWWForm formCreate = new WWWForm();
-        formCreate.AddField("session_id", newId); // session_id∏¶ ∫∏≥ª∏È ª˝º∫ ∏µÂ∑Œ ¿€µø
-
-        using (UnityWebRequest www = UnityWebRequest.Post(URL, formCreate))
-        {
-            yield return www.SendWebRequest();
-            if (www.result == UnityWebRequest.Result.Success)
-            {
-                Debug.Log("ªı πÊ µÓ∑œ øœ∑·: " + newId);
-            }
-            else
-            {
-                Debug.LogError("πÊ µÓ∑œ Ω«∆–: " + www.error);
-            }
-        }
-    }
-
-    // ∑£¥˝ ID ª˝º∫ ∏ﬁº≠µÂ
-    public string GetRandomId(int length = 5)
-    {
-        const string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-        char[] stringChars = new char[length];
-
-        for (int i = 0; i < length; i++)
-        {
-            int randomIndex = UnityEngine.Random.Range(0, chars.Length);
-            stringChars[i] = chars[randomIndex];
-        }
-        return new string(stringChars);
     }
 }
