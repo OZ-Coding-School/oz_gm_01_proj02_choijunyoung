@@ -62,14 +62,14 @@ public class TestPlayerController : NetworkTransform
         m_Motion.x = Input.GetAxis("Horizontal");
 
         // Determine whether the vertical input is applied to the Y or Z axis
-        if (!ApplyVerticalInputToZAxis)
-        {
-            m_Motion.y = Input.GetAxis("Vertical");
-        }
-        else
-        {
+        //if (!ApplyVerticalInputToZAxis)
+        //{
+        //    m_Motion.y = Input.GetAxis("Vertical");
+        //}
+        //else
+        //{
             m_Motion.z = Input.GetAxis("Vertical");
-        }
+        //}
 
         // If there is any player input magnitude, then apply that amount of
         // motion to the transform
