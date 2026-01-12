@@ -17,5 +17,5 @@ MonoBehaviour:
   maxAmmo: 24
   range: 200
   animationName: RifleFire
-  bulletPrefab: {fileID: 598999903188397919, guid: cc237826498e2b5459829b0caf121687, type: 3}
+  bulletPrefab: {fileID: 598999903188397919, guid: df69d8365aecec346aeff2f35b296cf3, type: 3}
   muzzleFX: {fileID: 100006, guid: b0a227fc2e558f241b1c747820ccc361, type: 3}

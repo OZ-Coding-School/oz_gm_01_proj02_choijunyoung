@@ -116,6 +116,7 @@ public class TestPlayerAttack : MonoBehaviour
     private void Shoot()
     {
         if(currentWeapon == null) return;
+        if (!isRifle && !isPistol) return;
 
         anim.SetTrigger(currentWeapon.animationName);
         GameObject bullet = Instantiate(currentWeapon.bulletPrefab,isRifle ? firePoints[0].position : firePoints[1].position,(isRifle ? firePoints[0].rotation : firePoints[1].rotation) * Quaternion.Euler(0, 90, 0));
