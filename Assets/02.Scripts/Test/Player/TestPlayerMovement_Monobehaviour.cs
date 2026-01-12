@@ -35,7 +35,6 @@ public class TestPlayerMovement_Monobehaviour : MonoBehaviour
 
     private void Update()
     {
-        Debug.Log("isGrounded"+isGrounded);
         
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
