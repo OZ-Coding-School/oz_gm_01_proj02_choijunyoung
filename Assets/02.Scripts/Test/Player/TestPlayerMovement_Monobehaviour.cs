@@ -1,4 +1,5 @@
 using UnityEngine;
+using Unity.Netcode;
 
 public class TestPlayerMovement_Monobehaviour : MonoBehaviour
 {
@@ -44,7 +45,7 @@ public class TestPlayerMovement_Monobehaviour : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // if (!IsOwner) return;
+         //if (!IsOwner) return;
 
         CheckGround();
 
