@@ -1,6 +1,7 @@
 using UnityEngine;
+using Unity.Netcode;
 
-public class TestPlayerAttack : MonoBehaviour
+public class PlayerAttack : NetworkBehaviour
 {
     const int RIFLEINDEX = 1;
     const int PISTOLINDEX = 2;
@@ -23,6 +24,9 @@ public class TestPlayerAttack : MonoBehaviour
     private float lastFireTime = 0f; // 발사 쿨 타임 관리 변수
     private TestPlayerAimManager aimManager;
 
+    //네트워크 설정 관련 -> 총기 활성/비활성
+    private NetworkVariable<int> netCurrentWeaponIndex = new NetworkVariable<int>(0,NetworkVariableReadPermission.Everyone,NetworkVariableWritePermission.Owner);
+
     private void Awake()
     {
         isActive = true;
@@ -36,9 +40,39 @@ public class TestPlayerAttack : MonoBehaviour
         input = GetComponent<TestPlayerInputs>();
         aimManager = GetComponent<TestPlayerAimManager>();
     }
+    public override void OnNetworkSpawn()
+    {
+        netCurrentWeaponIndex.OnValueChanged += OnWeaponStateChanged;
+        //UpdateWeaponVisuals(netCurrentWeaponIndex.Value);
+    }
+    public override void OnNetworkDespawn()
+    {
+        netCurrentWeaponIndex.OnValueChanged -= OnWeaponStateChanged;
+    }
+    private void OnWeaponStateChanged(int previousValue, int newValue)
+    {
+        //UpdateWeaponVisuals(newValue);
+        WeaponSwap(newValue);
+    }
+
+    private void UpdateWeaponVisuals(int weaponIndex)
+    {
+        bool isRifleActive = (weaponIndex == RIFLEINDEX);
+        bool isPistolActive = (weaponIndex == PISTOLINDEX);
+
+        rifle[0].gameObject.SetActive(isRifleActive);
+        rifle[1].gameObject.SetActive(!isRifleActive);
+
+        pistol[0].gameObject.SetActive(isPistolActive);
+        pistol[1].gameObject.SetActive(!isPistolActive);
+
+        anim.SetBool(ATK_POSE[0], !isRifleActive);
+        anim.SetBool(ATK_POSE[1], !isPistolActive);
+    }
 
     private void Update()
     {
+        if (!IsOwner) return;
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
             isPistol = false;
