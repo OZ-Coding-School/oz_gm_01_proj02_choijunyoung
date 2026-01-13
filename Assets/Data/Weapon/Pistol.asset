@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 032a7e2a0c1ce374fae7c0e0e53cd673, type: 3}
+  m_Name: Pistol
+  m_EditorClassIdentifier: Assembly-CSharp::SOWeapon
+  damage: 10
+  cooltime: 0.05
+  maxAmmo: 30
+  range: 100
+  animationName: PistolFire
+  bulletPrefab: {fileID: 5452723831288103129, guid: 5097f1b616b30374c80f9ba8002d5f75, type: 3}
+  muzzleFX: {fileID: 100006, guid: f47cb9d88f4bc6c4bb7441e962c2c1a5, type: 3}

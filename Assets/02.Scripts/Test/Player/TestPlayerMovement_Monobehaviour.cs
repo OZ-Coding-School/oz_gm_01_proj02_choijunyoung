@@ -1,3 +1,5 @@
+using Unity.Cinemachine;
+using Unity.Netcode;
 using UnityEngine;
 
 public class TestPlayerMovement_Monobehaviour : MonoBehaviour
@@ -34,7 +36,6 @@ public class TestPlayerMovement_Monobehaviour : MonoBehaviour
 
     private void Update()
     {
-        Debug.Log("isGrounded"+isGrounded);
         
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
@@ -44,7 +45,7 @@ public class TestPlayerMovement_Monobehaviour : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // if (!IsOwner) return;
+         //if (!IsOwner) return;
 
         CheckGround();
 

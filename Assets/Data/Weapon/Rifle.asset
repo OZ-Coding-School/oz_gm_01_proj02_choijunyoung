@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 032a7e2a0c1ce374fae7c0e0e53cd673, type: 3}
+  m_Name: Rifle
+  m_EditorClassIdentifier: Assembly-CSharp::SOWeapon
+  damage: 18
+  cooltime: 0.01
+  maxAmmo: 24
+  range: 200
+  animationName: RifleFire
+  bulletPrefab: {fileID: 598999903188397919, guid: df69d8365aecec346aeff2f35b296cf3, type: 3}
+  muzzleFX: {fileID: 100006, guid: b0a227fc2e558f241b1c747820ccc361, type: 3}
