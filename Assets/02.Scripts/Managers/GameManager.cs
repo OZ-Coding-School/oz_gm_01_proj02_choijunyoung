@@ -1,27 +1,37 @@
 using UnityEngine;
 using Unity.Netcode;
 
-public class GameManager : NetworkBehaviour
+public class GameManager
 {
-    public static GameManager Instance { get; private set; }
+    private static GameObject _root;
+    private static PoolManager _pool;
 
-    public NetworkVariable<float> gameTimer = new NetworkVariable<float>(0f);
-
-    private void Awake()
+    private static void Init()
     {
-        if (Instance != null && Instance != this)
+        if (_root == null)
         {
-            Destroy(gameObject);
+            _root = new GameObject("@Managers");
+            Object.DontDestroyOnLoad(_root);
         }
-        else
+    }
+    private static void CreateManager<T>(ref T manager, string name) where T : Component
+    {
+        if (manager == null)
         {
-            Instance = this;
+            Init();
+            GameObject obj = new GameObject(name);
+            manager = obj.AddComponent<T>();
+            Object.DontDestroyOnLoad(obj);
+            obj.transform.SetParent(_root.transform);
         }
     }
 
-    public override void OnNetworkSpawn()
+    public static PoolManager Pool
     {
-        base.OnNetworkSpawn();
+        get
+        {
+            CreateManager(ref _pool, "PoolManager");
+            return _pool;
+        }
     }
-
 }

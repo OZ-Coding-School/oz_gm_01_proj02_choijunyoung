@@ -61,33 +61,51 @@ public class TestPlayerAttack_Net : NetworkBehaviour
 
     private void Update()
     {
-        // [중요] 입력은 오너만 받아서 '변수 값'만 바꿈
         if (!IsOwner) return;
+
+        // [수정 1] 현재 상태를 미리 '지역 변수'에 저장해둡니다. (값을 바꾸기 전에!)
+        int currentState = netCurrentWeaponIndex.Value;
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            // 이미 라이플(1)이면 해제(0), 아니면 라이플(1) 장착
-            int nextState = (netCurrentWeaponIndex.Value == RIFLEINDEX) ? 0 : RIFLEINDEX;
+            // 현재 라이플(1)이면 -> 0(해제), 아니면 -> 1(라이플)
+            int nextState = (currentState == RIFLEINDEX) ? 0 : RIFLEINDEX;
+
+            // 값을 변경합니다.
             netCurrentWeaponIndex.Value = nextState;
 
-            // 애니메이션 트리거 (NetworkAnimator가 있다면 동기화됨)
-            if (nextState == RIFLEINDEX) anim.SetTrigger("RifleDraw");
-            else if (previousStateIsWeapon(RIFLEINDEX)) anim.SetTrigger("RifleHolster");
+            // [수정 2] 애니메이션 처리는 'currentState'(이전 값)와 'nextState'(다음 값)를 비교해서 처리
+            if (nextState == RIFLEINDEX)
+            {
+                anim.SetTrigger("RifleDraw");
+            }
+            // "방금 전까지 라이플이었는데(currentState), 이제 0이 됐다면" -> 집어넣기
+            else if (currentState == RIFLEINDEX && nextState == 0)
+            {
+                anim.SetTrigger("RifleHolster");
+            }
         }
         else if (Input.GetKeyDown(KeyCode.Alpha2))
         {
-            // 이미 권총(2)이면 해제(0), 아니면 권총(2) 장착
-            int nextState = (netCurrentWeaponIndex.Value == PISTOLINDEX) ? 0 : PISTOLINDEX;
+            // 현재 권총(2)이면 -> 0(해제), 아니면 -> 2(권총)
+            int nextState = (currentState == PISTOLINDEX) ? 0 : PISTOLINDEX;
+
             netCurrentWeaponIndex.Value = nextState;
 
-            if (nextState == PISTOLINDEX) anim.SetTrigger("PistolDraw");
-            else if (previousStateIsWeapon(PISTOLINDEX)) anim.SetTrigger("PistolHolster");
+            if (nextState == PISTOLINDEX)
+            {
+                anim.SetTrigger("PistolDraw");
+            }
+            // "방금 전까지 권총이었는데(currentState), 이제 0이 됐다면" -> 집어넣기
+            else if (currentState == PISTOLINDEX && nextState == 0)
+            {
+                anim.SetTrigger("PistolHolster");
+            }
         }
 
-        // 현재 무기 데이터 세팅 (로컬 로직용)
         UpdateCurrentWeaponData();
 
-        // 발사 로직
+        // 발사 로직 (동일)
         if (Input.GetMouseButton(0) && currentWeapon != null)
         {
             if (Time.time >= lastFireTime + currentWeapon.cooltime)

@@ -9,7 +9,7 @@ public class PlayerShoot : NetworkBehaviour
 
     [SerializeField] private Transform[] pistol = new Transform[2]; 
     [SerializeField] private Transform[] rifle = new Transform[2];  
-    [SerializeField] private GameObject[] bulletprefab;
+    //[SerializeField] private GameObject[] bulletprefab;
 
     private NetworkVariable<int> netCurrentWeaponIndex = new NetworkVariable<int>(
         0,
@@ -36,8 +36,18 @@ public class PlayerShoot : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        var gmInit = GameManager.Pool.transform;
+        var parent = gmInit.Find("Ammo_Pool");
+        if (parent == null)
+        {
+            parent = new GameObject("Ammo_Pool").transform;
+            parent.SetParent(gmInit, false);
+        }
+        foreach (var weapon in weaponData)
+        {
+            GameManager.Pool.CreatePool(weapon.bulletPrefab.GetComponent<NetworkObject>(), weapon.maxAmmo, parent);
+        }
         netCurrentWeaponIndex.OnValueChanged += OnWeaponStateChanged;
-
         UpdateWeaponVisuals(netCurrentWeaponIndex.Value);
     }
 
@@ -55,21 +65,37 @@ public class PlayerShoot : NetworkBehaviour
     {
         if (!IsOwner) return;
 
+        int currentState = netCurrentWeaponIndex.Value;
+
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            int nextState = (netCurrentWeaponIndex.Value == RIFLEINDEX) ? 0 : RIFLEINDEX;
+            int nextState = (currentState == RIFLEINDEX) ? 0 : RIFLEINDEX;
+
             netCurrentWeaponIndex.Value = nextState;
 
-            if (nextState == RIFLEINDEX) anim.SetTrigger("RifleDraw");
-            else if (previousStateIsWeapon(RIFLEINDEX)) anim.SetTrigger("RifleHolster");
+            if (nextState == RIFLEINDEX)
+            {
+                anim.SetTrigger("RifleDraw");
+            }
+            else if (currentState == RIFLEINDEX && nextState == 0)
+            {
+                anim.SetTrigger("RifleHolster");
+            }
         }
         else if (Input.GetKeyDown(KeyCode.Alpha2))
         {
-            int nextState = (netCurrentWeaponIndex.Value == PISTOLINDEX) ? 0 : PISTOLINDEX;
+            int nextState = (currentState == PISTOLINDEX) ? 0 : PISTOLINDEX;
+
             netCurrentWeaponIndex.Value = nextState;
 
-            if (nextState == PISTOLINDEX) anim.SetTrigger("PistolDraw");
-            else if (previousStateIsWeapon(PISTOLINDEX)) anim.SetTrigger("PistolHolster");
+            if (nextState == PISTOLINDEX)
+            {
+                anim.SetTrigger("PistolDraw");
+            }
+            else if (currentState == PISTOLINDEX && nextState == 0)
+            {
+                anim.SetTrigger("PistolHolster");
+            }
         }
 
         UpdateCurrentWeaponData();
@@ -134,11 +160,24 @@ public class PlayerShoot : NetworkBehaviour
 
         Quaternion bulletRotation = Quaternion.LookRotation(dir);
 
-        GameObject bullet = Instantiate(currentWeapon.bulletPrefab, currentFirePoint.position, bulletRotation);
-        var bulletScript = bullet.GetComponent<Bullet>();
-        if (bulletScript != null) bulletScript.SetDamage(currentWeapon.damage);
-        var netObj = bullet.GetComponent<NetworkObject>();
-        if (netObj != null) netObj.Spawn();
+        //기존 버전
+        //GameObject bullet = Instantiate(currentWeapon.bulletPrefab, currentFirePoint.position, bulletRotation);
+        //var bulletScript = bullet.GetComponent<Bullet>();
+        //if (bulletScript != null) bulletScript.SetDaamage(currentWeapon.damage);
+        //var netObj = bullet.GetComponent<NetworkObject>();
+        //if (netObj != null) netObj.Spawn();
+
+        //풀링 버전
+        NetworkObject netObj = currentWeapon.bulletPrefab.GetComponent<NetworkObject>();
+        NetworkObject poolObj = PoolManager.instance.GetFromPool(netObj);
+
+        poolObj.transform.SetPositionAndRotation(currentFirePoint.position, bulletRotation);
+
+        poolObj.Spawn();
+
+        var bullet = poolObj.GetComponent<Bullet>();
+        if(bullet != null) bullet.SetDamage(currentWeapon.damage);
+
         if (currentWeapon.muzzleFX != null && currentFirePoint != null)
         {
             GameObject FX = Instantiate(currentWeapon.muzzleFX, currentFirePoint.position, currentFirePoint.rotation);

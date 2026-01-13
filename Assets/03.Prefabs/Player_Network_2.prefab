@@ -5143,7 +5143,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2936653967
+  GlobalObjectIdHash: 3490233086
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 0
@@ -5313,9 +5313,6 @@ MonoBehaviour:
   rifle:
   - {fileID: 886625451714348843}
   - {fileID: 8055205379933048172}
-  bulletprefab:
-  - {fileID: 598999903188397919, guid: df69d8365aecec346aeff2f35b296cf3, type: 3}
-  - {fileID: 5452723831288103129, guid: 5097f1b616b30374c80f9ba8002d5f75, type: 3}
   weaponData:
   - {fileID: 11400000, guid: e9a06ee5c781489499102eacff72c6e7, type: 2}
   - {fileID: 11400000, guid: 0cdb0b359ab01b447a06219a703cfb88, type: 2}

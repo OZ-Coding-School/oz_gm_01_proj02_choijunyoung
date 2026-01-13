@@ -19,6 +19,10 @@ public class Bullet : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        StopAllCoroutines();
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+
         if (IsOwner)
         {
             rb.linearVelocity = transform.forward * speed;

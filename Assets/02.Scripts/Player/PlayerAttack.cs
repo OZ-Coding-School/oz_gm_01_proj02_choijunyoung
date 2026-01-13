@@ -40,35 +40,6 @@ public class PlayerAttack : NetworkBehaviour
         input = GetComponent<TestPlayerInputs>();
         aimManager = GetComponent<TestPlayerAimManager>();
     }
-    public override void OnNetworkSpawn()
-    {
-        netCurrentWeaponIndex.OnValueChanged += OnWeaponStateChanged;
-        //UpdateWeaponVisuals(netCurrentWeaponIndex.Value);
-    }
-    public override void OnNetworkDespawn()
-    {
-        netCurrentWeaponIndex.OnValueChanged -= OnWeaponStateChanged;
-    }
-    private void OnWeaponStateChanged(int previousValue, int newValue)
-    {
-        //UpdateWeaponVisuals(newValue);
-        WeaponSwap(newValue);
-    }
-
-    private void UpdateWeaponVisuals(int weaponIndex)
-    {
-        bool isRifleActive = (weaponIndex == RIFLEINDEX);
-        bool isPistolActive = (weaponIndex == PISTOLINDEX);
-
-        rifle[0].gameObject.SetActive(isRifleActive);
-        rifle[1].gameObject.SetActive(!isRifleActive);
-
-        pistol[0].gameObject.SetActive(isPistolActive);
-        pistol[1].gameObject.SetActive(!isPistolActive);
-
-        anim.SetBool(ATK_POSE[0], !isRifleActive);
-        anim.SetBool(ATK_POSE[1], !isPistolActive);
-    }
 
     private void Update()
     {
