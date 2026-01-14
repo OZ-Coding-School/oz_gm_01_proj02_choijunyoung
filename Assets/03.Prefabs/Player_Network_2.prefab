@@ -5253,7 +5253,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMove
   ShowTopMostFoldoutHeaderGroup: 1
   speed: 5
-  rotationSpeed: 120
+  rotationSpeed: 10
   jumpHeight: 2
   gravityScale: 2
   groundLayer:

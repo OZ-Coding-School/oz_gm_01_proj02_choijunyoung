@@ -181,14 +181,17 @@ public class PlayerShoot : NetworkBehaviour
         anim.SetTrigger(currentWeapon.animationName);
         Transform currentFirePoint = (netCurrentWeaponIndex.Value == RIFLEINDEX) ? firePoints[0] : firePoints[1];
         Vector3 targetPoint = aimManager.CurrentAimPoint;
+        Debug.Log($"[총알 위치] 에임의 포지션 : {targetPoint}");
         Vector3 dir = (targetPoint - currentFirePoint.position).normalized;
 
         Quaternion bulletRotation = Quaternion.LookRotation(dir);
 
+        //문제 : 첫 탄창을 발사한 이후 재장전을 한 총알 객체는 바로 직전에 조준했던 위치를 향해서 발사됨.
+
         //풀링 버전
         NetworkObject netObj = currentWeapon.bulletPrefab.GetComponent<NetworkObject>();
         NetworkObject poolObj = GameManager.Pool.GetFromPool(netObj, gameObject.GetComponent<PlayerUserData>().userId);
-
+        Debug.Log($"[총알 위치] 총구 위치 : {currentFirePoint.position}, 총알이 향하는 방향 : {bulletRotation}");
         poolObj.transform.SetPositionAndRotation(currentFirePoint.position, bulletRotation);
 
         poolObj.Spawn();
