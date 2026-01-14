@@ -1,6 +1,7 @@
 using UnityEngine;
+using Unity.Netcode;
 
-public class TestPlayerAttack : MonoBehaviour
+public class PlayerAttack : NetworkBehaviour
 {
     const int RIFLEINDEX = 1;
     const int PISTOLINDEX = 2;
@@ -23,6 +24,9 @@ public class TestPlayerAttack : MonoBehaviour
     private float lastFireTime = 0f; // 발사 쿨 타임 관리 변수
     private TestPlayerAimManager aimManager;
 
+    //네트워크 설정 관련 -> 총기 활성/비활성
+    private NetworkVariable<int> netCurrentWeaponIndex = new NetworkVariable<int>(0,NetworkVariableReadPermission.Everyone,NetworkVariableWritePermission.Owner);
+
     private void Awake()
     {
         isActive = true;
@@ -39,6 +43,7 @@ public class TestPlayerAttack : MonoBehaviour
 
     private void Update()
     {
+        if (!IsOwner) return;
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
             isPistol = false;

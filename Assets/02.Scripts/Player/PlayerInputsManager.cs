@@ -1,7 +1,8 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Unity.Netcode;
 
-public class TestPlayerInputs : MonoBehaviour
+public class PlayerInputsManager : NetworkBehaviour
 {
     public bool aim;
     public bool attack;

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Rifle
   m_EditorClassIdentifier: Assembly-CSharp::SOWeapon
   damage: 18
-  cooltime: 0.01
+  cooltime: 0.2
   maxAmmo: 24
   range: 200
   animationName: RifleFire
