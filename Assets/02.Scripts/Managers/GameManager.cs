@@ -5,6 +5,7 @@ public class GameManager
 {
     private static GameObject _root;
     private static PoolManager _pool;
+    private static PlayerSettingManager _settingManager;
 
     private static void Init()
     {
@@ -32,6 +33,15 @@ public class GameManager
         {
             CreateManager(ref _pool, "PoolManager");
             return _pool;
+        }
+    }
+
+    public static PlayerSettingManager SettingManager
+    {
+        get
+        {
+            CreateManager(ref _settingManager, "PlayerSetting");
+            return _settingManager;
         }
     }
 }

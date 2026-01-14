@@ -78,4 +78,9 @@ public class Bullet : NetworkBehaviour
             GetComponent<NetworkObject>().Despawn();
         }
     }
+
+    public void ReturnPool(string userId = null)
+    {
+        if (PoolManager.instance != null) PoolManager.instance.ReturnPool(this);
+    }
 }

@@ -1,3 +1,5 @@
+using NUnit.Framework;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -7,9 +9,11 @@ public class PlayerShoot : NetworkBehaviour
     const int PISTOLINDEX = 2;
     private string[] ATK_POSE = { "TakeRifle", "TakePistol" };
 
+    private List<int> magazineCount = new List<int>();
+    private List<NetworkObject> activeBullets = new List<NetworkObject>();
+
     [SerializeField] private Transform[] pistol = new Transform[2]; 
     [SerializeField] private Transform[] rifle = new Transform[2];  
-    //[SerializeField] private GameObject[] bulletprefab;
 
     private NetworkVariable<int> netCurrentWeaponIndex = new NetworkVariable<int>(
         0,
@@ -32,20 +36,17 @@ public class PlayerShoot : NetworkBehaviour
         anim = GetComponent<Animator>();
         input = GetComponent<PlayerInputsManager>();
         aimManager = GetComponent<PlayerAimManager>();
+        
     }
 
     public override void OnNetworkSpawn()
     {
-        var gmInit = GameManager.Pool.transform;
-        var parent = gmInit.Find("Ammo_Pool");
-        if (parent == null)
-        {
-            parent = new GameObject("Ammo_Pool").transform;
-            parent.SetParent(gmInit, false);
-        }
+        var username = gameObject.GetComponent<PlayerUserData>().userId;
+        var parent = gameObject.GetComponent<PlayerUserData>().ammoMagazine;
         foreach (var weapon in weaponData)
         {
-            GameManager.Pool.CreatePool(weapon.bulletPrefab.GetComponent<NetworkObject>(), weapon.maxAmmo, parent);
+            magazineCount.Add(weapon.maxAmmo);
+            GameManager.Pool.CreatePool(weapon.bulletPrefab.GetComponent<NetworkObject>(), weapon.maxAmmo, parent, username);
         }
         netCurrentWeaponIndex.OnValueChanged += OnWeaponStateChanged;
         UpdateWeaponVisuals(netCurrentWeaponIndex.Value);
@@ -108,6 +109,12 @@ public class PlayerShoot : NetworkBehaviour
                 lastFireTime = Time.time;
             }
         }
+
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            int num = currentWeapon.name == "Rifle" ? 0 : 1;
+            Reload(num);
+        }
     }
     private void UpdateWeaponVisuals(int weaponIndex)
     {
@@ -152,6 +159,24 @@ public class PlayerShoot : NetworkBehaviour
     private void Shoot()
     {
         if (currentWeapon == null) return;
+        
+        if (magazineCount[0] <= 0)
+        {
+            Reload(0);
+        }
+        else if (magazineCount[1] <= 0)
+        {
+            Reload(1);
+        }
+        else if (currentWeapon.name == "Rifle")
+        {
+            magazineCount[0]--;
+        }
+        else if (currentWeapon.name == "Pistol")
+        {
+            magazineCount[1]--;
+        }
+        if (magazineCount[0] < 1 || magazineCount[1] < 1) return;
 
         anim.SetTrigger(currentWeapon.animationName);
         Transform currentFirePoint = (netCurrentWeaponIndex.Value == RIFLEINDEX) ? firePoints[0] : firePoints[1];
@@ -160,20 +185,14 @@ public class PlayerShoot : NetworkBehaviour
 
         Quaternion bulletRotation = Quaternion.LookRotation(dir);
 
-        //기존 버전
-        //GameObject bullet = Instantiate(currentWeapon.bulletPrefab, currentFirePoint.position, bulletRotation);
-        //var bulletScript = bullet.GetComponent<Bullet>();
-        //if (bulletScript != null) bulletScript.SetDaamage(currentWeapon.damage);
-        //var netObj = bullet.GetComponent<NetworkObject>();
-        //if (netObj != null) netObj.Spawn();
-
         //풀링 버전
         NetworkObject netObj = currentWeapon.bulletPrefab.GetComponent<NetworkObject>();
-        NetworkObject poolObj = PoolManager.instance.GetFromPool(netObj);
+        NetworkObject poolObj = GameManager.Pool.GetFromPool(netObj, gameObject.GetComponent<PlayerUserData>().userId);
 
         poolObj.transform.SetPositionAndRotation(currentFirePoint.position, bulletRotation);
 
         poolObj.Spawn();
+        activeBullets.Add(poolObj);
 
         var bullet = poolObj.GetComponent<Bullet>();
         if(bullet != null) bullet.SetDamage(currentWeapon.damage);
@@ -184,5 +203,16 @@ public class PlayerShoot : NetworkBehaviour
             Destroy(FX, 0.2f);
         }
     }
+
+    private void Reload(int num)
+    {
+        Transform Root = gameObject.GetComponent<PlayerUserData>().ammoMagazine;
+        magazineCount[num] = currentWeapon.maxAmmo;
+        foreach(NetworkObject bullet in activeBullets) 
+        {
+            bullet.GetComponent<Bullet>().ReturnPool(gameObject.GetComponent<PlayerUserData>().userId);
+        }
+    }
+
 }
 

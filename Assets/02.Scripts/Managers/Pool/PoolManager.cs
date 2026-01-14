@@ -19,11 +19,12 @@ public class PoolManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-    public void CreatePool<T>(T prefab, int initCount, Transform parent = null) where T : MonoBehaviour
+    public void CreatePool<T>(T prefab, int initCount, Transform parent = null, string userId = null) where T : MonoBehaviour
     {
         if(prefab == null) return;
         
-        string key = prefab.name;
+        string key = prefab.name + "(" + userId + ")";
+        Debug.Log(key);
         if (pools.ContainsKey(key)) return;
         if (parent == null) parent = this.transform;
         pools.Add(key, new ObjectPool<T>(prefab, initCount, parent));
@@ -37,11 +38,15 @@ public class PoolManager : MonoBehaviour
         }
     }
 
-    public T GetFromPool<T>(T prefab) where T : MonoBehaviour
+    public T GetFromPool<T>(T prefab, string userId = null) where T : MonoBehaviour
     {
         if(prefab == null) return null;
-        if(!pools.TryGetValue(prefab.name, out var box)) return null;
-       
+        if (!pools.TryGetValue(prefab.name + "(" + userId + ")", out var box)) 
+        {
+            Debug.Log(box);
+            return null; 
+        }
+
         var pool = box as ObjectPool<T>;
         if (pool != null) return pool.Dequeue();
         else return null;
@@ -58,13 +63,13 @@ public class PoolManager : MonoBehaviour
         return obj;
     }
 
-    public void ReturnPool<T>(T instance) where T : MonoBehaviour
+    public void ReturnPool<T>(T instance, string userId = null) where T : MonoBehaviour
     {
         if (instance == null) return;
 
         string key = instance.gameObject.name.Replace("(Clone)", "");
 
-        if (!pools.TryGetValue(key, out var box))
+        if (!pools.TryGetValue(key + "(" + userId + ")", out var box))
         {
             Destroy(instance.gameObject);
             return;
