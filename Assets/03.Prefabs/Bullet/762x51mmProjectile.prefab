@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: -1875512495206537612}
   - component: {fileID: -3328670663310137726}
   - component: {fileID: -156386546356288803}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: 762x51mmProjectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -120,7 +120,7 @@ Rigidbody:
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 112
   m_CollisionDetection: 0
 --- !u!136 &7587820046677761306
 CapsuleCollider:

@@ -30,6 +30,7 @@ public class PlayerShoot : NetworkBehaviour
     private PlayerInputsManager input;
     private float lastFireTime = 0f;
     private PlayerAimManager aimManager;
+    [SerializeField] float bulletSpeed = 20f;
 
     private void Awake()
     {
@@ -41,13 +42,13 @@ public class PlayerShoot : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        var username = gameObject.GetComponent<PlayerUserData>().userId;
-        var parent = gameObject.GetComponent<PlayerUserData>().ammoMagazine;
-        foreach (var weapon in weaponData)
-        {
-            magazineCount.Add(weapon.maxAmmo);
-            GameManager.Pool.CreatePool(weapon.bulletPrefab.GetComponent<NetworkObject>(), weapon.maxAmmo, parent, username);
-        }
+        //var username = gameObject.GetComponent<PlayerUserData>().userId;
+        //var parent = gameObject.GetComponent<PlayerUserData>().ammoMagazine;
+        //foreach (var weapon in weaponData)
+        //{
+        //    magazineCount.Add(weapon.maxAmmo);
+        //    GameManager.Pool.CreatePool(weapon.bulletPrefab.GetComponent<NetworkObject>(), weapon.maxAmmo, parent, username);
+        //}
         netCurrentWeaponIndex.OnValueChanged += OnWeaponStateChanged;
         UpdateWeaponVisuals(netCurrentWeaponIndex.Value);
     }
@@ -185,23 +186,48 @@ public class PlayerShoot : NetworkBehaviour
 
         Quaternion bulletRotation = Quaternion.LookRotation(dir);
 
-        //풀링 버전
-        NetworkObject netObj = currentWeapon.bulletPrefab.GetComponent<NetworkObject>();
-        NetworkObject poolObj = GameManager.Pool.GetFromPool(netObj, gameObject.GetComponent<PlayerUserData>().userId);
+        if (IsServer)
+        {
+            SpawnBulletServer(currentFirePoint.position, bulletRotation, dir);
 
-        poolObj.transform.SetPositionAndRotation(currentFirePoint.position, bulletRotation);
-
-        poolObj.Spawn();
-        activeBullets.Add(poolObj);
-
-        var bullet = poolObj.GetComponent<Bullet>();
-        if(bullet != null) bullet.SetDamage(currentWeapon.damage);
-
+        }
+        else
+        {
+            // 클라이언트라면 서버에게 발사 요청 (선택 사항: 반응성을 위해 필요 시 구현)
+            // 여기서는 일단 IsServer 체크가 된 상태에서만 로직이 돌게 해야 함
+        }
         if (currentWeapon.muzzleFX != null && currentFirePoint != null)
         {
             GameObject FX = Instantiate(currentWeapon.muzzleFX, currentFirePoint.position, currentFirePoint.rotation);
             Destroy(FX, 0.2f);
         }
+
+    }
+
+    private void SpawnBulletServer(Vector3 position, Quaternion rotation, Vector3 direction)
+    {
+        //풀링 버전
+        NetworkObject netObj = currentWeapon.bulletPrefab.GetComponent<NetworkObject>();
+        NetworkObject poolObj = GameManager.Pool.GetFromPool(netObj, gameObject.GetComponent<PlayerUserData>().userId);
+        poolObj.transform.SetPositionAndRotation(position, rotation);
+        var rb = poolObj.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.Sleep();
+
+            rb.linearVelocity = direction * bulletSpeed;
+        }
+
+        poolObj.Spawn();
+        Debug.Log($"총알 스폰 확인 : {poolObj.IsSpawned}");
+        activeBullets.Add(poolObj);
+
+        var bullet = poolObj.GetComponent<Bullet>();
+        if (bullet != null) bullet.SetDamage(currentWeapon.damage);
+
+        
     }
 
     private void Reload(int num)

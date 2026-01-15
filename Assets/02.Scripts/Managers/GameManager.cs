@@ -6,6 +6,9 @@ public class GameManager
     private static GameObject _root;
     private static PoolManager _pool;
     private static PlayerSettingManager _settingManager;
+    private static CreatePoolObjectManager _createPoolObjManager;
+
+    
 
     private static void Init()
     {
@@ -44,4 +47,14 @@ public class GameManager
             return _settingManager;
         }
     }
+
+    public static CreatePoolObjectManager CreatePoolObj
+    {
+        get
+        {
+            CreateManager(ref _createPoolObjManager, "CreatePoolObj");
+            return _createPoolObjManager;
+        }
+    }
+
 }

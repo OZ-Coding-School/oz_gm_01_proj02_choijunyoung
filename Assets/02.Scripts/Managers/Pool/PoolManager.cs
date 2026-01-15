@@ -22,8 +22,9 @@ public class PoolManager : MonoBehaviour
     public void CreatePool<T>(T prefab, int initCount, Transform parent = null, string userId = null) where T : MonoBehaviour
     {
         if(prefab == null) return;
-        
-        string key = prefab.name + "(" + userId + ")";
+
+        //string key = prefab.name + "(" + userId + ")";
+        string key = prefab.name;
         Debug.Log(key);
         if (pools.ContainsKey(key)) return;
         if (parent == null) parent = this.transform;
@@ -41,7 +42,8 @@ public class PoolManager : MonoBehaviour
     public T GetFromPool<T>(T prefab, string userId = null) where T : MonoBehaviour
     {
         if(prefab == null) return null;
-        if (!pools.TryGetValue(prefab.name + "(" + userId + ")", out var box)) 
+        //if (!pools.TryGetValue(prefab.name + "(" + userId + ")", out var box)) 
+        if (!pools.TryGetValue(prefab.name, out var box))
         {
             Debug.Log(box);
             return null; 
@@ -69,7 +71,8 @@ public class PoolManager : MonoBehaviour
 
         string key = instance.gameObject.name.Replace("(Clone)", "");
 
-        if (!pools.TryGetValue(key + "(" + userId + ")", out var box))
+        //if (!pools.TryGetValue(key + "(" + userId + ")", out var box))
+        if (!pools.TryGetValue(key, out var box))
         {
             Destroy(instance.gameObject);
             return;

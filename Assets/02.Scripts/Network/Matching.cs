@@ -100,7 +100,7 @@ public class Matching : MonoBehaviour
         {
             if (sessionId != null)
             {
-                GameManager.SettingManager.SetAmmoPool(FirebaseAuthManager.Instance.UserId);
+                //GameManager.SettingManager.SetAmmoPool(FirebaseAuthManager.Instance.UserId);
                 GameManager.SettingManager.SetUserData(FirebaseAuthManager.Instance.UserId);
                 Debug.Log($"≮≮≮ 己傍! 技记 ID: {sessionId} ≮≮≮");
                 Debug.Log($"酒捞叼 : {FirebaseAuthManager.Instance.UserId} / 技记 : {sessionId}");

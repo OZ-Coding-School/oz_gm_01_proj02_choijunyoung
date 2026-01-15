@@ -16,12 +16,17 @@ public class Bullet : NetworkBehaviour
         rb = GetComponent<Rigidbody>();
         
     }
+    private void OnEnable()
+    {
+        Debug.Log("ÃÑ¾Ë È°¼ºÈ­");
+
+        if(IsOwner) StartCoroutine(DelayShoot());
+        if (IsServer) StartCoroutine(DespawnTimer(3f));
+    }
 
     public override void OnNetworkSpawn()
     {
-        StopAllCoroutines();
-        rb.linearVelocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
+        
 
         if (IsOwner)
         {
@@ -81,6 +86,12 @@ public class Bullet : NetworkBehaviour
 
     public void ReturnPool(string userId = null)
     {
-        if (PoolManager.instance != null) PoolManager.instance.ReturnPool(this);
+        if (PoolManager.instance != null) PoolManager.instance.ReturnPool(this.GetComponent<NetworkObject>(), userId);
+    }
+
+    IEnumerator DelayShoot()
+    {
+        yield return null;
+
     }
 }
