@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 1950289149105552579}
   - component: {fileID: 7728576595141498129}
   - component: {fileID: 604228168730968153}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: 9x19mmProjectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}

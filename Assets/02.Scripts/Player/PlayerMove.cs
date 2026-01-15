@@ -22,7 +22,7 @@ public class PlayerMove : NetworkBehaviour
 
     [Header("Slope Setting")]
     private RaycastHit slopeHit;
-    [SerializeField] private float maxSlopeAngle = 40f;
+    [SerializeField] private float maxSlopeAngle = 50f;
     //이 외에도 위에 groundLayer, groundCheckDistance 포함
 
     [Header("Ground Check")]
@@ -95,19 +95,7 @@ public class PlayerMove : NetworkBehaviour
     private void Move(float forward, float right, float currentSpeed)
     {
         float animPlaySpeed = DEFAULT_ANIMATION_PLAYSPEED + GetAnimationSyncWithMovement(currentSpeed);
-        if (Mathf.Abs(forward) <= 0 && Mathf.Abs(right) <= 0)
-        {
-            anim.SetBool("Walk", false);
-            anim.SetBool("Run", false);
-        }
-        else
-        {
-            bool isRunning = currentSpeed > speed;
-
-            anim.SetBool("Run", isRunning);
-            anim.SetBool("Walk", !isRunning);
-        }
-
+        
         bool isOnSlope = IsOnSlope();
 
         direction = (transform.forward * forward + transform.right * right).normalized;
@@ -115,7 +103,8 @@ public class PlayerMove : NetworkBehaviour
 
         float currentYVelocity = rb.linearVelocity.y;
 
-        if (isGrounded && isOnSlope && currentYVelocity <= 0.1f) 
+        //if (isGrounded && isOnSlope && currentYVelocity <= 0.1f)
+        if (isGrounded && isOnSlope)
         {
             velocity = AdjustDirectionToSlope(direction) * currentSpeed;
             rb.useGravity = false;

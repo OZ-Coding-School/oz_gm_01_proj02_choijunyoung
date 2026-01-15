@@ -42,13 +42,13 @@ public class PlayerShoot : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        var username = gameObject.GetComponent<PlayerUserData>().userId;
-        var parent = gameObject.GetComponent<PlayerUserData>().ammoMagazine;
-        foreach (var weapon in weaponData)
-        {
-            magazineCount.Add(weapon.maxAmmo);
-            GameManager.Pool.CreatePool(weapon.bulletPrefab.GetComponent<NetworkObject>(), weapon.maxAmmo, parent, username);
-        }
+        //var username = gameObject.GetComponent<PlayerUserData>().userId;
+        //var parent = gameObject.GetComponent<PlayerUserData>().ammoMagazine;
+        //foreach (var weapon in weaponData)
+        //{
+        //    magazineCount.Add(weapon.maxAmmo);
+        //    GameManager.Pool.CreatePool(weapon.bulletPrefab.GetComponent<NetworkObject>(), weapon.maxAmmo, parent, username);
+        //}
         netCurrentWeaponIndex.OnValueChanged += OnWeaponStateChanged;
         UpdateWeaponVisuals(netCurrentWeaponIndex.Value);
     }
@@ -186,12 +186,30 @@ public class PlayerShoot : NetworkBehaviour
 
         Quaternion bulletRotation = Quaternion.LookRotation(dir);
 
-        //문제 : 첫 탄창을 발사한 이후 재장전을 한 총알 객체는 바로 직전에 조준했던 위치를 향해서 발사됨.
+        if (IsServer)
+        {
+            SpawnBulletServer(currentFirePoint.position, bulletRotation, dir);
 
+        }
+        else
+        {
+            // 클라이언트라면 서버에게 발사 요청 (선택 사항: 반응성을 위해 필요 시 구현)
+            // 여기서는 일단 IsServer 체크가 된 상태에서만 로직이 돌게 해야 함
+        }
+        if (currentWeapon.muzzleFX != null && currentFirePoint != null)
+        {
+            GameObject FX = Instantiate(currentWeapon.muzzleFX, currentFirePoint.position, currentFirePoint.rotation);
+            Destroy(FX, 0.2f);
+        }
+
+    }
+
+    private void SpawnBulletServer(Vector3 position, Quaternion rotation, Vector3 direction)
+    {
         //풀링 버전
         NetworkObject netObj = currentWeapon.bulletPrefab.GetComponent<NetworkObject>();
         NetworkObject poolObj = GameManager.Pool.GetFromPool(netObj, gameObject.GetComponent<PlayerUserData>().userId);
-        poolObj.transform.SetPositionAndRotation(currentFirePoint.position, bulletRotation);
+        poolObj.transform.SetPositionAndRotation(position, rotation);
         var rb = poolObj.GetComponent<Rigidbody>();
         if (rb != null)
         {
@@ -199,7 +217,7 @@ public class PlayerShoot : NetworkBehaviour
             rb.angularVelocity = Vector3.zero;
             rb.Sleep();
 
-            rb.linearVelocity = dir * bulletSpeed;
+            rb.linearVelocity = direction * bulletSpeed;
         }
 
         poolObj.Spawn();
@@ -207,13 +225,9 @@ public class PlayerShoot : NetworkBehaviour
         activeBullets.Add(poolObj);
 
         var bullet = poolObj.GetComponent<Bullet>();
-        if(bullet != null) bullet.SetDamage(currentWeapon.damage);
+        if (bullet != null) bullet.SetDamage(currentWeapon.damage);
 
-        if (currentWeapon.muzzleFX != null && currentFirePoint != null)
-        {
-            GameObject FX = Instantiate(currentWeapon.muzzleFX, currentFirePoint.position, currentFirePoint.rotation);
-            Destroy(FX, 0.2f);
-        }
+        
     }
 
     private void Reload(int num)
