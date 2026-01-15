@@ -30,6 +30,7 @@ public class PlayerShoot : NetworkBehaviour
     private PlayerInputsManager input;
     private float lastFireTime = 0f;
     private PlayerAimManager aimManager;
+    [SerializeField] float bulletSpeed = 20f;
 
     private void Awake()
     {
@@ -181,7 +182,6 @@ public class PlayerShoot : NetworkBehaviour
         anim.SetTrigger(currentWeapon.animationName);
         Transform currentFirePoint = (netCurrentWeaponIndex.Value == RIFLEINDEX) ? firePoints[0] : firePoints[1];
         Vector3 targetPoint = aimManager.CurrentAimPoint;
-        Debug.Log($"[총알 위치] 에임의 포지션 : {targetPoint}");
         Vector3 dir = (targetPoint - currentFirePoint.position).normalized;
 
         Quaternion bulletRotation = Quaternion.LookRotation(dir);
@@ -191,10 +191,19 @@ public class PlayerShoot : NetworkBehaviour
         //풀링 버전
         NetworkObject netObj = currentWeapon.bulletPrefab.GetComponent<NetworkObject>();
         NetworkObject poolObj = GameManager.Pool.GetFromPool(netObj, gameObject.GetComponent<PlayerUserData>().userId);
-        Debug.Log($"[총알 위치] 총구 위치 : {currentFirePoint.position}, 총알이 향하는 방향 : {bulletRotation}");
         poolObj.transform.SetPositionAndRotation(currentFirePoint.position, bulletRotation);
+        var rb = poolObj.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.Sleep();
+
+            rb.linearVelocity = dir * bulletSpeed;
+        }
 
         poolObj.Spawn();
+        Debug.Log($"총알 스폰 확인 : {poolObj.IsSpawned}");
         activeBullets.Add(poolObj);
 
         var bullet = poolObj.GetComponent<Bullet>();
