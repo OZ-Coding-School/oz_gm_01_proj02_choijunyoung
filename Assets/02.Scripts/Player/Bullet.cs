@@ -65,6 +65,7 @@ public class Bullet : NetworkBehaviour
     {
         Debug.Log("적 명중! 데미지 :" + damage);
         collision.gameObject.GetComponent<TestEnemyDamage>().TakeDamage(damage);
+        collision.gameObject.GetComponent<EnemyBase>().TakeDamage(damage);
 
     }
     IEnumerator DespawnTimer(float time)

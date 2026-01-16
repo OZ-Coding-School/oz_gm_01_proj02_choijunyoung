@@ -19,7 +19,7 @@ GameObject:
   - component: {fileID: 604228168730968153}
   m_Layer: 9
   m_Name: 9x19mmProjectile
-  m_TagString: Untagged
+  m_TagString: bullet
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
