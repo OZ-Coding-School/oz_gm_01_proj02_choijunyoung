@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
@@ -266,10 +267,27 @@ public class PlayerShoot : NetworkBehaviour
             var particle = muzzleFlashParticles[particleIndex];
             if (particle != null)
             {
-                particle.Stop();
-                particle.Play();
+                StartCoroutine(PlayParticleRoutine(particle));
             }
         }
+    }
+
+    private IEnumerator PlayParticleRoutine(ParticleSystem particle)
+    {
+        
+        particle.gameObject.SetActive(true);
+        particle.Stop();
+        particle.Play();
+
+        
+        float duration = particle.main.duration;
+
+        
+        if (duration < 0.1f) duration = 0.1f;
+
+        yield return new WaitForSeconds(duration);
+
+        particle.gameObject.SetActive(false);
     }
     [ClientRpc]
     private void PlayMuzzleFlashClientRpc(int weaponIndex)
@@ -279,6 +297,7 @@ public class PlayerShoot : NetworkBehaviour
 
         PlayMuzzleFlash(weaponIndex);
     }
+
 
     private void Reload(int num)
     {
