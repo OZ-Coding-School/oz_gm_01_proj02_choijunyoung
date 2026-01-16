@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class TestEnemyDamage : MonoBehaviour
+public class TestEnemyDamage : MonoBehaviour, IDamageable
 {
     public float health = 100f;
 
@@ -14,7 +14,7 @@ public class TestEnemyDamage : MonoBehaviour
         }
     }
 
-    private void Die()
+    public void Die()
     {
         Debug.Log("Enemy died.");
         Destroy(gameObject);
