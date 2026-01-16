@@ -31,6 +31,9 @@ public class PlayerShoot : NetworkBehaviour
     private float lastFireTime = 0f;
     private PlayerAimManager aimManager;
     [SerializeField] float bulletSpeed = 20f;
+    [SerializeField] private ParticleSystem[] muzzleFlashParticles;
+
+    private ObjectPoolSystem currentPoolSystem;
 
     private void Awake()
     {
@@ -42,20 +45,32 @@ public class PlayerShoot : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        var username = gameObject.GetComponent<PlayerUserData>().userId;
-        var parent = gameObject.GetComponent<PlayerUserData>().ammoMagazine;
+        //var username = gameObject.GetComponent<PlayerUserData>().userId;
+        //var parent = gameObject.GetComponent<PlayerUserData>().ammoMagazine;
         foreach (var weapon in weaponData)
         {
             magazineCount.Add(weapon.maxAmmo);
-            GameManager.Pool.CreatePool(weapon.bulletPrefab.GetComponent<NetworkObject>(), weapon.maxAmmo, parent, username);
+            //    GameManager.Pool.CreatePool(weapon.bulletPrefab.GetComponent<NetworkObject>(), weapon.maxAmmo, parent, username);
+            //    var poolHandler = new NetworkedObjectPooling(weapon.bulletPrefab, username); // 20260116->네트워크 풀링을 위해 추가됨.
+            //    NetworkManager.Singleton.PrefabHandler.AddHandler(weapon.bulletPrefab, poolHandler); // 20260116->네트워크 풀링을 위해 추가됨.
         }
         netCurrentWeaponIndex.OnValueChanged += OnWeaponStateChanged;
         UpdateWeaponVisuals(netCurrentWeaponIndex.Value);
+        UpdateCurrentWeaponData();
     }
 
     public override void OnNetworkDespawn()
     {
         netCurrentWeaponIndex.OnValueChanged -= OnWeaponStateChanged;
+        // 20260116->네트워크 풀링을 위해 추가됨.
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.PrefabHandler != null)
+        {
+            foreach(var weapon in weaponData)
+            {
+                NetworkManager.Singleton.PrefabHandler.RemoveHandler(weapon.bulletPrefab);
+            }
+        }
+        // 20260116->네트워크 풀링을 위해 추가됨.
     }
 
     private void OnWeaponStateChanged(int previousValue, int newValue)
@@ -150,6 +165,18 @@ public class PlayerShoot : NetworkBehaviour
         {
             currentWeapon = null;
         }
+        if(currentWeapon != null && currentWeapon.bulletPrefab != null)
+        {
+            if (ObjectPoolSystem.ExistingPoolSystems.ContainsKey(currentWeapon.bulletPrefab))
+            {
+                currentPoolSystem = ObjectPoolSystem.ExistingPoolSystems[currentWeapon.bulletPrefab];
+            }
+            else
+            {
+                Debug.Log("총알 프리팹 X");
+            }
+        }
+        
     }
 
     private bool previousStateIsWeapon(int weaponIdx)
@@ -159,7 +186,7 @@ public class PlayerShoot : NetworkBehaviour
 
     private void Shoot()
     {
-        if (currentWeapon == null) return;
+        if (currentWeapon == null || currentPoolSystem == null) return;
         
         if (magazineCount[0] <= 0)
         {
@@ -186,44 +213,90 @@ public class PlayerShoot : NetworkBehaviour
 
         Quaternion bulletRotation = Quaternion.LookRotation(dir);
 
-        //문제 : 첫 탄창을 발사한 이후 재장전을 한 총알 객체는 바로 직전에 조준했던 위치를 향해서 발사됨.
+        // ObjectPoolSystem으로 구현한 버전
+        var inst = currentPoolSystem.GetInstance(IsOwner);
+        if (inst != null)
+        {
+            inst.transform.position = currentFirePoint.position;
+            inst.transform.rotation = bulletRotation;
 
+            var rb = inst.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+                rb.Sleep();
+
+                rb.linearVelocity = dir * bulletSpeed;
+            }
+            var bullet = inst.GetComponent<Bullet>();
+            if (bullet != null) bullet.SetDamage(currentWeapon.damage);
+            inst.Spawn();
+
+            activeBullets.Add(inst);
+        }
+        #region 기존 풀링
         //풀링 버전
-        NetworkObject netObj = currentWeapon.bulletPrefab.GetComponent<NetworkObject>();
-        NetworkObject poolObj = GameManager.Pool.GetFromPool(netObj, gameObject.GetComponent<PlayerUserData>().userId);
-        poolObj.transform.SetPositionAndRotation(currentFirePoint.position, bulletRotation);
-        var rb = poolObj.GetComponent<Rigidbody>();
-        if (rb != null)
+        //NetworkObject netObj = currentWeapon.bulletPrefab.GetComponent<NetworkObject>();
+        //NetworkObject poolObj = GameManager.Pool.GetFromPool(netObj, gameObject.GetComponent<PlayerUserData>().userId);
+        //poolObj.transform.SetPositionAndRotation(currentFirePoint.position, bulletRotation);
+
+        //poolObj.Spawn();
+        //activeBullets.Add(inst);
+        //Debug.Log($"총알 스폰 확인 : {poolObj.IsSpawned}");
+        #endregion
+
+
+        PlayMuzzleFlash(netCurrentWeaponIndex.Value); // 내화면 출력
+        PlayMuzzleFlashClientRpc(netCurrentWeaponIndex.Value); // 다른 사람 화면 출력
+
+        //기존 이펙트
+        //if (currentWeapon.muzzleFX != null && currentFirePoint != null)
+        //{
+        //    GameObject FX = Instantiate(currentWeapon.muzzleFX, currentFirePoint.position, currentFirePoint.rotation);
+        //    Destroy(FX, 0.2f);
+        //}
+    }
+
+    private void PlayMuzzleFlash(int weaponIndex)
+    {
+        int particleIndex = (weaponIndex == 1) ? 0 : 1;
+        if (muzzleFlashParticles != null && muzzleFlashParticles.Length > particleIndex)
         {
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-            rb.Sleep();
-
-            rb.linearVelocity = dir * bulletSpeed;
+            var particle = muzzleFlashParticles[particleIndex];
+            if (particle != null)
+            {
+                particle.Stop();
+                particle.Play();
+            }
         }
+    }
+    [ClientRpc]
+    private void PlayMuzzleFlashClientRpc(int weaponIndex)
+    {
+       
+        if (IsOwner) return;
 
-        poolObj.Spawn();
-        Debug.Log($"총알 스폰 확인 : {poolObj.IsSpawned}");
-        activeBullets.Add(poolObj);
-
-        var bullet = poolObj.GetComponent<Bullet>();
-        if(bullet != null) bullet.SetDamage(currentWeapon.damage);
-
-        if (currentWeapon.muzzleFX != null && currentFirePoint != null)
-        {
-            GameObject FX = Instantiate(currentWeapon.muzzleFX, currentFirePoint.position, currentFirePoint.rotation);
-            Destroy(FX, 0.2f);
-        }
+        PlayMuzzleFlash(weaponIndex);
     }
 
     private void Reload(int num)
     {
-        Transform Root = gameObject.GetComponent<PlayerUserData>().ammoMagazine;
         magazineCount[num] = currentWeapon.maxAmmo;
-        foreach(NetworkObject bullet in activeBullets) 
+        for (int i = activeBullets.Count - 1; i >= 0; i--)
         {
-            bullet.GetComponent<Bullet>().ReturnPool(gameObject.GetComponent<PlayerUserData>().userId);
+            NetworkObject bullet = activeBullets[i];
+            if (bullet != null && bullet.IsSpawned)
+            {
+                bullet.Despawn();
+            }
         }
+        activeBullets.Clear();
+
+        //foreach(NetworkObject bullet in activeBullets) 
+        //{
+        //    bullet.GetComponent<Bullet>().ReturnPool(gameObject.GetComponent<PlayerUserData>().userId);
+        //}
     }
 
 }

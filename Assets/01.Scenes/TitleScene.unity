@@ -4269,6 +4269,64 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1052649168}
   m_CullTransparentMesh: 1
+--- !u!1 &1078939652
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1078939653}
+  - component: {fileID: 1078939654}
+  m_Layer: 0
+  m_Name: Rifle_Ammo
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1078939653
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1078939652}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.00037, y: -2845.4177, z: 0.00454}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1078939654
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1078939652}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d438d12fb5895684984bc25283926986, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectPoolSystem
+  NetworkPrefab: {fileID: 598999903188397919, guid: df69d8365aecec346aeff2f35b296cf3, type: 3}
+  ObjectPoolSize: 100
+  PoolInSystemScene: 1
+  UsePoolForSpawn: 1
+  DontDestroyOnSceneUnload: 1
+  ExtendedProperties: 0
+  UseUnreliableDeltas: 1
+  DebugHandlerDestroy: 0
+  EnableTransformOverrides: 0
+  HalfFloat: 0
+  QuaternionSynchronization: 0
+  QuaternionCompression: 0
+  Interpolate: 0
+  ForceRebuildPool: 0
 --- !u!1 &1159247924
 GameObject:
   m_ObjectHideFlags: 0
@@ -8067,6 +8125,64 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RectMask2D
   m_Padding: {x: -8, y: -5, z: -8, w: -5}
   m_Softness: {x: 0, y: 0}
+--- !u!1 &1946809074
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1946809075}
+  - component: {fileID: 1946809076}
+  m_Layer: 0
+  m_Name: Pistol_Ammo
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1946809075
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1946809074}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.00037, y: -2845.4177, z: 0.00454}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1946809076
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1946809074}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d438d12fb5895684984bc25283926986, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectPoolSystem
+  NetworkPrefab: {fileID: 5452723831288103129, guid: 5097f1b616b30374c80f9ba8002d5f75, type: 3}
+  ObjectPoolSize: 120
+  PoolInSystemScene: 1
+  UsePoolForSpawn: 1
+  DontDestroyOnSceneUnload: 1
+  ExtendedProperties: 0
+  UseUnreliableDeltas: 1
+  DebugHandlerDestroy: 0
+  EnableTransformOverrides: 0
+  HalfFloat: 0
+  QuaternionSynchronization: 0
+  QuaternionCompression: 0
+  Interpolate: 0
+  ForceRebuildPool: 0
 --- !u!1 &1953206879
 GameObject:
   m_ObjectHideFlags: 0
@@ -9196,3 +9312,5 @@ SceneRoots:
   - {fileID: 365710593}
   - {fileID: 1327319253}
   - {fileID: 1510386926}
+  - {fileID: 1078939653}
+  - {fileID: 1946809075}
