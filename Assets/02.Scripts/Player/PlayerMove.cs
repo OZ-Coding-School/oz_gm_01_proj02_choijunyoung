@@ -1,19 +1,32 @@
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Animations;
 
 public class PlayerMove : NetworkBehaviour
 {
+    const float DEFAULT_CONVERT_MOVESPEED = 3f;
+    const float DEFAULT_ANIMATION_PLAYSPEED = 0.9f;
+
     [Header("Movement Settings")]
     [SerializeField] private float speed = 5f;
     [SerializeField] private float rotationSpeed = 120f;
     [SerializeField] private float jumpHeight = 2f;
     [SerializeField] private float gravityScale = 2f;
     [SerializeField] private LayerMask groundLayer;
-    [SerializeField] private float groundCheckDistance = 1f;
-    [SerializeField] private float runMultiplier = 1.5f;
+    [SerializeField] private float groundCheckDistance = 2f;
+    [SerializeField] private float runMultiplier = 2f;
+    public Vector3 direction { get; private set; }
 
     [Header("Rotation Smoothing")]
     [SerializeField] private float rotationSmoothTime = 0.1f;
+
+    [Header("Slope Setting")]
+    private RaycastHit slopeHit;
+    [SerializeField] private float maxSlopeAngle = 50f;
+    //이 외에도 위에 groundLayer, groundCheckDistance 포함
+
+    [Header("Ground Check")]
+    [SerializeField] Transform groundCheck;
 
     private Rigidbody rb;
     private float currentAngularY = 0f;
@@ -48,7 +61,8 @@ public class PlayerMove : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        CheckGround();
+        //CheckGround();
+        isGrounded = IsGrounded();
 
         float mouseX = Input.GetAxis("Mouse X") * rotationSpeed;
         Rotate(mouseX);
@@ -66,32 +80,43 @@ public class PlayerMove : NetworkBehaviour
 
     }
 
-    private void CheckGround()
+    //private void CheckGround()
+    //{
+    //    Vector3 rayStart = transform.position + Vector3.up * 0.2f;
+    //    isGrounded = Physics.Raycast(rayStart, Vector3.down, groundCheckDistance, groundLayer);
+    //}
+
+    public bool IsGrounded()
     {
-        Vector3 rayStart = transform.position + Vector3.up * 0.2f;
-        isGrounded = Physics.Raycast(rayStart, Vector3.down, groundCheckDistance, groundLayer);
+        Vector3 boxSize = new Vector3(transform.lossyScale.x, 0.4f, transform.lossyScale.z);
+        return Physics.CheckBox(groundCheck.position, boxSize, Quaternion.identity, groundLayer);
     }
 
     private void Move(float forward, float right, float currentSpeed)
     {
-        if (Mathf.Abs(forward) <= 0 && Mathf.Abs(right) <= 0)
+        float animPlaySpeed = DEFAULT_ANIMATION_PLAYSPEED + GetAnimationSyncWithMovement(currentSpeed);
+        
+        bool isOnSlope = IsOnSlope();
+
+        direction = (transform.forward * forward + transform.right * right).normalized;
+        Vector3 velocity = direction * currentSpeed; 
+
+        float currentYVelocity = rb.linearVelocity.y;
+
+        //if (isGrounded && isOnSlope && currentYVelocity <= 0.1f)
+        if (isGrounded && isOnSlope)
         {
-            anim.SetBool("Walk", false);
-            anim.SetBool("Run", false);
+            velocity = AdjustDirectionToSlope(direction) * currentSpeed;
+            rb.useGravity = false;
         }
         else
         {
-            bool isRunning = currentSpeed > speed;
-
-            anim.SetBool("Run", isRunning);
-            anim.SetBool("Walk", !isRunning);
+            rb.useGravity = true;
+            velocity.y = currentYVelocity;
         }
 
-        Vector3 direction = (transform.forward * forward + transform.right * right).normalized;
-        Vector3 velocity = direction * currentSpeed;
-
-        velocity.y = rb.linearVelocity.y;
-        rb.linearVelocity = velocity;
+        rb.linearVelocity = velocity; // 최종 적용
+        anim.SetFloat("Velocity", animPlaySpeed);
     }
 
     private void Rotate(float mouseX)
@@ -99,6 +124,7 @@ public class PlayerMove : NetworkBehaviour
         float targetAngularY = mouseX;
         currentAngularY = Mathf.Lerp(currentAngularY, targetAngularY, Time.fixedDeltaTime / rotationSmoothTime);
         rb.angularVelocity = new Vector3(0f, currentAngularY, 0f);
+        transform.rotation = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
     }
 
     private void Jump()
@@ -109,10 +135,36 @@ public class PlayerMove : NetworkBehaviour
         rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpVelocity, rb.linearVelocity.z);
     }
 
+    public bool IsOnSlope()
+    {
+        Ray ray = new Ray(transform.position, Vector3.down);
+        if(Physics.Raycast(ray, out slopeHit, groundCheckDistance, groundLayer))
+        {
+            var angle = Vector3.Angle(Vector3.up, slopeHit.normal);
+            return angle != 0f && angle < maxSlopeAngle;
+        }
+        return false;
+    }
+
+    protected Vector3 AdjustDirectionToSlope(Vector3 direction)
+    {
+        return Vector3.ProjectOnPlane(direction, slopeHit.normal).normalized;
+    }
+
     private void OnDrawGizmos()
     {
-        Gizmos.color = isGrounded ? Color.green : Color.red;
-        Vector3 start = transform.position + Vector3.up * 0.1f;
-        Gizmos.DrawRay(start, Vector3.down * groundCheckDistance);
+        Gizmos.color = Color.red;
+        Vector3 boxSize = new Vector3(transform.lossyScale.x, 0.4f, transform.lossyScale.z);
+        Gizmos.DrawWireCube(groundCheck.position, boxSize);
+    }
+
+    public float GetAnimationSyncWithMovement(float changedMoveSpeed)
+    {
+        if (direction == Vector3.zero)
+        {
+            return -DEFAULT_ANIMATION_PLAYSPEED;
+        }
+
+        return (changedMoveSpeed - DEFAULT_CONVERT_MOVESPEED) * 0.1f;
     }
 }

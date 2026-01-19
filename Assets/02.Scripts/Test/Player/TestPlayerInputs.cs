@@ -5,6 +5,7 @@ public class TestPlayerInputs : MonoBehaviour
 {
     public bool aim;
     public bool attack;
+    public float bullet_damage { get; set; }
 
     public void OnAim(InputValue value)
     {

@@ -81,6 +81,8 @@ public class Matching : MonoBehaviour
             _session = await MultiplayerService.Instance.CreateOrJoinSessionAsync(_sessionName, options);
 
             _state = ConnectionState.Connected;
+
+            
         }
         catch (Exception e)
         {
@@ -92,13 +94,16 @@ public class Matching : MonoBehaviour
     public void OnClickPlay()
     {
         float timer = 0;
+        
         StartCoroutine( MatchTimer(timer));
         sessionFetcher.FetchSessionId(async (sessionId) =>
         {
             if (sessionId != null)
             {
+                //GameManager.SettingManager.SetAmmoPool(FirebaseAuthManager.Instance.UserId);
+                GameManager.SettingManager.SetUserData(FirebaseAuthManager.Instance.UserId);
                 Debug.Log($"≮≮≮ 己傍! 技记 ID: {sessionId} ≮≮≮");
-                Debug.Log($"酒捞叼 : {FirebaseAuthManager.Instance.UserId} / 技记 : {sessionId}"); 
+                Debug.Log($"酒捞叼 : {FirebaseAuthManager.Instance.UserId} / 技记 : {sessionId}");
                 await CreateOrJoinSessionAsync(FirebaseAuthManager.Instance.UserId, sessionId);
             }
             else

@@ -21,6 +21,7 @@ public class TestPlayerAttack : MonoBehaviour
     private TestPlayerInputs input;
 
     private float lastFireTime = 0f; // 발사 쿨 타임 관리 변수
+    private TestPlayerAimManager aimManager;
 
     private void Awake()
     {
@@ -33,6 +34,7 @@ public class TestPlayerAttack : MonoBehaviour
         isRifle = false;
         isPistol = false;
         input = GetComponent<TestPlayerInputs>();
+        aimManager = GetComponent<TestPlayerAimManager>();
     }
 
     private void Update()
@@ -49,8 +51,16 @@ public class TestPlayerAttack : MonoBehaviour
             isPistol = !isPistol;
             WeaponSwap(PISTOLINDEX);
         }
-        if (isRifle) currentWeapon = weaponData[0];
-        else if (isPistol) currentWeapon = weaponData[1];
+        if (isRifle) 
+        {
+            currentWeapon = weaponData[0];
+            input.bullet_damage = currentWeapon.damage;
+        }
+        else if (isPistol) 
+        {
+            currentWeapon = weaponData[1];
+            input.bullet_damage = currentWeapon.damage;
+        }
 
         if (Input.GetMouseButton(0) && currentWeapon != null)
         {
@@ -119,10 +129,17 @@ public class TestPlayerAttack : MonoBehaviour
         if (!isRifle && !isPistol) return;
 
         anim.SetTrigger(currentWeapon.animationName);
-        GameObject bullet = Instantiate(currentWeapon.bulletPrefab,isRifle ? firePoints[0].position : firePoints[1].position,(isRifle ? firePoints[0].rotation : firePoints[1].rotation) * Quaternion.Euler(0, 90, 0));
+        Transform currentFirePoint = isRifle ? firePoints[0] : firePoints[1];
+        Vector3 targetPoint = aimManager.CurrentAimPoint;
+        Vector3 dir = (targetPoint - currentFirePoint.position).normalized;
 
-        Transform currentFirePoint = isRifle? firePoints[0] : firePoints[1];
-        if(currentWeapon.muzzleFX != null&& currentFirePoint != null)
+        Quaternion bulletRotation = Quaternion.LookRotation(dir);
+
+        //GameObject bullet = Instantiate(currentWeapon.bulletPrefab,isRifle ? firePoints[0].position : firePoints[1].position,(isRifle ? firePoints[0].rotation : firePoints[1].rotation) * Quaternion.Euler(0, 90, 0));
+        GameObject bullet = Instantiate(currentWeapon.bulletPrefab, currentFirePoint.position, bulletRotation);
+        bullet.GetComponent<Bullet>().SetDamage(currentWeapon.damage);
+
+        if (currentWeapon.muzzleFX != null&& currentFirePoint != null)
         {
             GameObject FX = Instantiate(currentWeapon.muzzleFX, currentFirePoint.position, currentFirePoint.rotation);
 

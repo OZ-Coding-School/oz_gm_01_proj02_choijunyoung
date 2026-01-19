@@ -5,17 +5,20 @@ TagManager:
   serializedVersion: 3
   tags:
   - FxTemporaire
+  - dataCollector
+  - Enemy
+  - bullet
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - HitBox
   - Water
   - UI
   - Ground
   - Enemy
-  - 
-  - 
+  - Wall
+  - Bullet
   - 
   - 
   - 

@@ -14,6 +14,7 @@ public class TestPlayerAimManager : MonoBehaviour
     [SerializeField] private GameObject aimobj;
     [SerializeField] private float aimDistance = 10f;
 
+    public Vector3 CurrentAimPoint { get ; private set; }
 
     private void Start()
     {
@@ -23,12 +24,29 @@ public class TestPlayerAimManager : MonoBehaviour
 
     private void Update()
     {
+        UpdateAimPoint();
         AimCheck();
+    }
+
+    private void UpdateAimPoint()
+    {
+        Transform camTransform = Camera.main.transform;
+        RaycastHit hit;
+
+        if (Physics.Raycast(camTransform.position, camTransform.forward, out hit, Mathf.Infinity))
+        {
+            CurrentAimPoint = hit.point;
+        }
+        else
+        {
+            CurrentAimPoint = camTransform.position + (camTransform.forward * aimDistance);
+        }
+
+        if (aimobj != null) aimobj.transform.position = CurrentAimPoint;
     }
 
     private void AimCheck()
     {
-        
         if (input.aim)
         {
             aimCam.gameObject.SetActive(true);
@@ -49,8 +67,7 @@ public class TestPlayerAimManager : MonoBehaviour
                 targetPosition = camTransform.position = camTransform.forward;
                 aimobj.transform.position = camTransform.position = camTransform.forward*aimDistance;
             }
-
-
+            
         }
         else
         {
