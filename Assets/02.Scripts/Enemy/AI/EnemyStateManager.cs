@@ -15,6 +15,7 @@ public class EnemyStateManager : NetworkBehaviour
 
     private void Start()
     {
+        Debug.Log("적 상태 매니저 실행");
         TransitionToState(new IdleState());
         AllocateComponents();
     }
@@ -27,7 +28,6 @@ public class EnemyStateManager : NetworkBehaviour
 
     private void Update()
     {
-        if (!IsServer) return;
         CurrentState?.UpdateState(this); // 파라미터 뒤에 ?.null이 아닐때만 실행하란뜻
     }
 

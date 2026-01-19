@@ -61916,8 +61916,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawner
   ShowTopMostFoldoutHeaderGroup: 1
   enemyPrefab: {fileID: 7888843862927891198, guid: 88b94e4511530d74590a6d17f6835333, type: 3}
-  enemyCount: 10
-  spawnRadius: 50
+  enemyCount: 20
+  spawnRadius: 100
 --- !u!114 &334958120
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -61956,7 +61956,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObjectPoolSystem
   NetworkPrefab: {fileID: 7888843862927891198, guid: 88b94e4511530d74590a6d17f6835333, type: 3}
-  ObjectPoolSize: 10
+  ObjectPoolSize: 20
   PoolInSystemScene: 1
   UsePoolForSpawn: 1
   DontDestroyOnSceneUnload: 1
