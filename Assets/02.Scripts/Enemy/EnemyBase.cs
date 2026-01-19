@@ -3,7 +3,6 @@ using UnityEngine.AI;
 
 public class EnemyBase : MonoBehaviour, IDamageable
 {
-    SOEnemy enemyData;
     public float maxHealth;
     private float curhealth;
     public Transform target;
