@@ -21,7 +21,7 @@ public class Bullet : NetworkBehaviour
         Debug.Log("총알 활성화");
 
         if(IsOwner) StartCoroutine(DelayShoot());
-        StartCoroutine(DespawnTimer(5f));
+        StartCoroutine(DespawnTimer(10f));
     }
 
     public override void OnNetworkSpawn()
@@ -32,7 +32,7 @@ public class Bullet : NetworkBehaviour
         {
             rb.linearVelocity = transform.forward * speed;
         }
-         StartCoroutine(DespawnTimer(5f));
+         StartCoroutine(DespawnTimer(10f));
         
     }
 
@@ -62,8 +62,8 @@ public class Bullet : NetworkBehaviour
     public void Damage(Collision collision, float damage)
     {
         Debug.Log("적 명중! 데미지 :" + damage);
-        collision.gameObject.GetComponent<TestEnemyDamage>().TakeDamage(damage);
-        collision.gameObject.GetComponent<EnemyBase>().TakeDamage(damage);
+        collision.gameObject.GetComponent<EnemyDamage>().TakeDamage(damage);
+        collision.gameObject.GetComponent<PlayerDamage>().TakeDamage(damage);
 
     }
     IEnumerator DespawnTimer(float time)

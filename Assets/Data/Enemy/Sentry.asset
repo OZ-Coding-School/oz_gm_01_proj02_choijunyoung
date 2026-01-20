@@ -15,8 +15,8 @@ MonoBehaviour:
   EnemyName: Sentry
   EnemyDescription: "\uC9C0\uC0C1\uC5D0 \uAE30\uC5B4\uB2E4\uB2C8\uBA70 \uC801\uC744
     \uBC1C\uACAC\uD558\uBA74 \uB09C\uC0AC\uD558\uB294 \uB85C\uBD07"
-  MaxHP: 1000
-  Damage: 10
+  MaxHP: 500
+  Damage: 3
   MoveSpeed: 5
   PatrolSpeed: 5
   ChaseSpeed: 5
