@@ -16,10 +16,10 @@ GameObject:
   - component: {fileID: 7719286268020553926}
   - component: {fileID: -1875512495206537612}
   - component: {fileID: -3328670663310137726}
-  - component: {fileID: -156386546356288803}
-  m_Layer: 9
+  - component: {fileID: 1862928779611989398}
+  m_Layer: 11
   m_Name: Enemy_Ammo
-  m_TagString: bullet
+  m_TagString: EnemyBullet
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -34,7 +34,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0.000000021855694, y: 0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_LocalScale: {x: 10, y: 10, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -157,7 +157,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2857234027
+  GlobalObjectIdHash: 3197606933
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -233,7 +233,7 @@ MonoBehaviour:
   UseRigidBodyForMotion: 0
   AutoUpdateKinematicState: 1
   AutoSetKinematicOnDespawn: 1
---- !u!114 &-156386546356288803
+--- !u!114 &1862928779611989398
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -242,9 +242,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 598999903188397919}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 984c132ab58c3f74fa74ff674201787a, type: 3}
+  m_Script: {fileID: 11500000, guid: aadb4ecca01b4b445a0440432f94e610, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Bullet
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyBullet
   ShowTopMostFoldoutHeaderGroup: 1
-  hit_Env_FX_Prefab: {fileID: 100002, guid: 957385c45b877e645a128e11a3efb2f9, type: 3}
+  hitEnvFXPrefab: {fileID: 100002, guid: 957385c45b877e645a128e11a3efb2f9, type: 3}
   speed: 30
+  lifeTime: 10

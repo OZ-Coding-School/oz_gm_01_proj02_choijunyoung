@@ -67,7 +67,6 @@ public class EnemyDamage : NetworkBehaviour, IDamageable
         float newHealth = currentHealth.Value - incomingDamage;
         currentHealth.Value = Mathf.Max(0f, newHealth);
 
-        Debug.Log($"데미지 {incomingDamage} 받음 | 남은 HP: {currentHealth.Value}");
 
         if (currentHealth.Value <= 0f)
         {

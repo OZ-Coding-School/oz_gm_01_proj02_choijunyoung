@@ -16,9 +16,9 @@ MonoBehaviour:
   EnemyDescription: "\uC9C0\uC0C1\uC5D0 \uAE30\uC5B4\uB2E4\uB2C8\uBA70 \uC801\uC744
     \uBC1C\uACAC\uD558\uBA74 \uB09C\uC0AC\uD558\uB294 \uB85C\uBD07"
   MaxHP: 500
-  Damage: 3
+  Damage: 1
   MoveSpeed: 5
-  PatrolSpeed: 5
+  PatrolSpeed: 3
   ChaseSpeed: 5
   SightRange: 70
   AttackRange: 30

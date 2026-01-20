@@ -1,8 +1,10 @@
+using System.Collections;
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
-using UnityEngine.Rendering;              // Post Processing용
-using UnityEngine.Rendering.Universal;    // URP 기준 (Built-in이면 UniversalRenderPipelineAsset 확인)
+using UnityEngine.Rendering;              
+using UnityEngine.Rendering.Universal;
+using UnityEngine.SceneManagement;
 
 public class PlayerDamage : NetworkBehaviour, IDamageable
 {
@@ -21,16 +23,16 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
     private NetworkVariable<float> currentHealth = new NetworkVariable<float>(
         default,
         NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
+        NetworkVariableWritePermission.Server
     );
 
     public NetworkVariable<bool> isDead = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
+        NetworkVariableWritePermission.Server
     );
 
-    private void Awake()
+    private void Start()
     {
         anim = GetComponent<Animator>();
         if (anim == null) Debug.LogWarning("[PlayerDamage] Animator 없음");
@@ -50,6 +52,16 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
         {
             deathUICanvas = GameObject.Find("DeathUICanvas");
             if (deathUICanvas == null) Debug.Log("[PlayerDamage] DeathUICanvas를 찾을 수 없음");
+        }
+
+        if (globalVolume == null)
+        {
+            globalVolume = GameObject.Find("GlobalPostProcessing")?.GetComponent<Volume>();  // true: 비활성 오브젝트도 찾음
+            
+            if (globalVolume == null)
+            {
+                Debug.LogError("[PlayerDamage] 씬에 isGlobal 체크된 Volume 오브젝트가 없습니다!");
+            }
         }
 
         if (globalVolume != null && globalVolume.profile.TryGet(out colorAdjustments))
@@ -75,12 +87,16 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
 
         currentHealth.OnValueChanged += OnHealthChanged;
         isDead.OnValueChanged += OnDeadChanged;
+
+        NetworkManager.Singleton.OnClientStopped += OnClientStopped;
     }
 
     public override void OnNetworkDespawn()
     {
         currentHealth.OnValueChanged -= OnHealthChanged;
         isDead.OnValueChanged -= OnDeadChanged;
+        NetworkManager.Singleton.OnClientStopped -= OnClientStopped;
+
         base.OnNetworkDespawn();
     }
 
@@ -152,18 +168,63 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
         isDead.Value = true;
         currentHealth.Value = 0f;
 
+        deathUICanvas.SetActive(isDead.Value);
+
         Debug.Log($"[PlayerDamage] 사망! Client-{OwnerClientId}");
 
         // 플레이어 객체 제거
-        if (IsSpawned)
-        {
-            GetComponent<NetworkObject>().Despawn(true);
-        }
+        
 
         // 필요 시 게임 오버 처리
         if (NetworkManager.Singleton.LocalClient.IsSessionOwner)
         {
             // GameManager.Instance?.ShowGameOver();  // 게임 종료 로직
+        }
+    }
+
+    public void OnClickDieConfirm()
+    {
+        StartCoroutine(DieCo());
+    }
+
+    IEnumerator DieCo()
+    {
+        if (deathUICanvas != null)
+        {
+            deathUICanvas.SetActive(false);
+        }
+        yield return new WaitForSeconds(1.0f);  // 충분히 보여주기
+
+        if (IsOwner)
+        {
+            Debug.Log("[DieCo] TitleScene 먼저 로드 시작 (게임 씬 정리용)");
+            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("TitleScene", LoadSceneMode.Single);
+            asyncLoad.allowSceneActivation = true;
+
+            // 로딩 완료까지 대기
+            while (!asyncLoad.isDone)
+            {
+                yield return null;
+            }
+
+            Debug.Log("[DieCo] TitleScene 로드 완료!");
+        }
+
+        yield return new WaitForSeconds(0.3f);  // 씬 전환 후 약간 여유
+
+        if (NetworkManager.Singleton.IsConnectedClient)
+        {
+            Debug.Log("[DieCo] 새 씬에서 Shutdown 호출...");
+        }
+
+    }
+
+    private void OnClientStopped(bool isHost)
+    {
+        if (IsOwner && !isHost)
+        {
+            Debug.Log("[OnClientStopped] (fallback) Shutdown 완료! TitleScene 로드");
+            SceneManager.LoadScene("TitleScene");
         }
     }
 

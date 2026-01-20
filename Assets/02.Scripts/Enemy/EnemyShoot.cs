@@ -32,14 +32,12 @@ public class EnemyShoot : NetworkBehaviour
         // Owner만 발사
         if (!IsOwner) return;
 
-        // 쿨타임 체크 (예: 1.5초마다 발사)
         if (Time.time < nextFireTime) return;
 
         if (ammoPool == null || firePoint == null || target == null) return;
 
         // 방향 계산
         Vector3 dir = (target.position - firePoint.position).normalized;
-        dir.y = 0;  // 높이 무시 (지상 공격용)
         Quaternion bulletRot = Quaternion.LookRotation(dir);
 
         // 풀에서 총알 가져오기
@@ -58,7 +56,7 @@ public class EnemyShoot : NetworkBehaviour
                 rb.linearVelocity = dir * bulletSpeed;
             }
 
-            var bullet = bulletNetObj.GetComponent<Bullet>();
+            var bullet = bulletNetObj.GetComponent<EnemyBullet>();
             if (bullet != null)
             {
                 bullet.SetDamage(damage);
@@ -70,7 +68,6 @@ public class EnemyShoot : NetworkBehaviour
             Debug.Log($"[EnemyShoot] 총알 발사! 타겟: {target.name}");
         }
 
-
-        nextFireTime = Time.time + 1.5f;
+        nextFireTime = Time.time + 0.3f;
     }
 }
