@@ -20,33 +20,33 @@ public class Bullet : NetworkBehaviour
     {
         Debug.Log("총알 활성화");
 
-        if(IsOwner) StartCoroutine(DelayShoot());
-        if (IsServer) StartCoroutine(DespawnTimer(3f));
+        StartCoroutine(DespawnTimer(10f));
     }
 
     public override void OnNetworkSpawn()
     {
-        
-
         if (IsOwner)
         {
             rb.linearVelocity = transform.forward * speed;
         }
-        if (IsServer)
-        {
-            StartCoroutine(DespawnTimer(3f));
-        }
+         StartCoroutine(DespawnTimer(10f));
+        
     }
 
     private void OnCollisionEnter(Collision collision)
     {
         if (!IsOwner) return;
-        if (collision.gameObject.layer == LayerMask.NameToLayer("Enemy") || collision.gameObject.layer == LayerMask.NameToLayer("Player"))
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Player"))
         {
-            Damage(collision, damage);
+            Damage(collision, damage, "Player");
             RequestDespawnServerRpc();
         }
-        if(collision.gameObject.layer == LayerMask.NameToLayer("Ground") || collision.gameObject.layer == LayerMask.NameToLayer("Wall"))
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Enemy"))
+        {
+            Damage(collision, damage, "Enemy");
+            RequestDespawnServerRpc();
+        }
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Ground") || collision.gameObject.layer == LayerMask.NameToLayer("Wall"))
         {
             ContactPoint contact = collision.GetContact(0);
             GameObject fx = Instantiate(hit_Env_FX_Prefab, contact.point, Quaternion.LookRotation(contact.normal));
@@ -61,17 +61,17 @@ public class Bullet : NetworkBehaviour
         damage = dmg;
     }
 
-    public void Damage(Collision collision, float damage)
+    public void Damage(Collision collision, float damage, string type)
     {
         Debug.Log("적 명중! 데미지 :" + damage);
-        collision.gameObject.GetComponent<TestEnemyDamage>().TakeDamage(damage);
-        collision.gameObject.GetComponent<EnemyBase>().TakeDamage(damage);
+        if(type =="Enemy") collision.gameObject.GetComponent<EnemyDamage>().TakeDamage(damage);
+        if (type == "Player") collision.gameObject.GetComponent<PlayerDamage>().TakeDamage(damage);
 
     }
     IEnumerator DespawnTimer(float time)
     {
         yield return new WaitForSeconds(time);
-        if (IsSpawned && IsServer)
+        if (IsSpawned)
         {
             GetComponent<NetworkObject>().Despawn();
         }
@@ -90,9 +90,4 @@ public class Bullet : NetworkBehaviour
         if (PoolManager.instance != null) PoolManager.instance.ReturnPool(this.GetComponent<NetworkObject>(), userId);
     }
 
-    IEnumerator DelayShoot()
-    {
-        yield return null;
-
-    }
 }

@@ -9,35 +9,62 @@ public class EnemySpawner : NetworkBehaviour
     [SerializeField] private GameObject enemyPrefab; 
     [SerializeField] private int enemyCount = 10;
     [SerializeField] private float spawnRadius = 50f;
+    [SerializeField] private Transform[] spawnPoint;
 
     private ObjectPoolSystem poolSystem;
 
     public override void OnNetworkSpawn()
     {
         // 오직 서버에서만 실행
-        //if (!IsServer) return;
+        if (!IsSessionOwner) return;
 
         poolSystem = GetComponent<ObjectPoolSystem>();
 
         // 컴포넌트가 안 붙어있을 때
         if (poolSystem == null)
         {
-            Debug.LogError("[EnemySpawner] ObjectPoolSystem 컴포넌트가 없습니다! 인스펙터에서 추가해주세요.");
+            Debug.LogError("[EnemySpawner] ObjectPoolSystem 컴포넌트가 없음");
             return;
         }
+        int currentActiveCount = CountActiveEnemies("mech(Clone)");
+        if (currentActiveCount >= enemyCount) return;
+        int spawnAmount = enemyCount - currentActiveCount;
+
 
         // 적 스폰 시작
-        SpawnEnemies();
+        SpawnEnemies(spawnAmount);
     }
 
-    private void SpawnEnemies()
+    private int CountActiveEnemies(string prefabName)
     {
-        for (int i = 0; i < enemyCount; i++)
-        {
-            // 랜덤 위치 구하기
-            Vector3 spawnPos = GetRandomPointOnNavMesh(transform.position, spawnRadius);
+        int count = 0;
+        var allNetObjects = FindObjectsByType<NetworkObject>(FindObjectsSortMode.None);
 
-            // 풀에서 적 객체 가져오기
+        foreach (var obj in allNetObjects)
+        {
+            if (obj.name.Contains(prefabName) && obj.gameObject.activeInHierarchy)
+            {
+                count++;
+            }
+        }
+        Debug.Log("메크의 갯수 : " + count);
+        return count;
+    }
+
+    private void SpawnEnemies(int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            Vector3 center = transform.position;
+            if (spawnPoint != null && spawnPoint.Length > 0)
+            {
+                int randomIndex = Random.Range(0, spawnPoint.Length);
+                center = spawnPoint[randomIndex].position;
+            }
+
+            // 랜덤 위치 구하기
+            Vector3 spawnPos = GetRandomPointOnNavMesh(center, spawnRadius);
+
             // GetInstance(IsOwner) -> 서버가 Owner가 됩니다.
             NetworkObject enemyNetObj = poolSystem.GetInstance(true);
 
@@ -70,7 +97,6 @@ public class EnemySpawner : NetworkBehaviour
         Debug.Log($"[EnemySpawner] {enemyCount} 마리의 적을 스폰했습니다.");
     }
 
-   
     private Vector3 GetRandomPointOnNavMesh(Vector3 center, float range)
     {
         for (int i = 0; i < 30; i++)

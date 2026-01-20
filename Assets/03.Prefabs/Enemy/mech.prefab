@@ -318,6 +318,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1858117362922915062}
   m_LocalEulerAnglesHint: {x: 0.14674737, y: -116.514404, z: -179.65472}
+--- !u!1 &2182013592981445574
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 748145910720137678}
+  m_Layer: 7
+  m_Name: FirePoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &748145910720137678
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2182013592981445574}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 4.812, z: 4.368}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6317360851238251353}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2284606755936062919
 GameObject:
   m_ObjectHideFlags: 0
@@ -655,6 +686,8 @@ GameObject:
   - component: {fileID: 4584005284183075396}
   - component: {fileID: 5215718715060761492}
   - component: {fileID: 1615416508003004938}
+  - component: {fileID: 2045795474753538436}
+  - component: {fileID: 2222257735859761939}
   m_Layer: 7
   m_Name: mech
   m_TagString: Untagged
@@ -679,6 +712,7 @@ Transform:
   - {fileID: 70363609015833688}
   - {fileID: 898116410769302058}
   - {fileID: 7131623226398104324}
+  - {fileID: 748145910720137678}
   m_Father: {fileID: 8683938706909967596}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!137 &2968953483448488565
@@ -803,6 +837,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d633fbad8538625468d42db901f7cb42, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDataManager
+  ShowTopMostFoldoutHeaderGroup: 1
   _enemyData: {fileID: 11400000, guid: 4c2fd5be8944da44ebf3a0afc1bee698, type: 2}
   muzzleFlashVFX:
   - {fileID: 898116410787653482}
@@ -819,6 +854,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84e85966c6e99d641bc42bb5c510e8a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyRotation
+  ShowTopMostFoldoutHeaderGroup: 1
   turnSpeed: 360
   eyeTransform: {fileID: 70363609015833688}
 --- !u!114 &279536255671281509
@@ -833,6 +869,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5530d93a1b369b2488262aed11e3d3ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySight
+  ShowTopMostFoldoutHeaderGroup: 1
   eyeTransform: {fileID: 70363609015833688}
   viewAngle: 120
   obstacleMask:
@@ -1011,6 +1048,36 @@ MonoBehaviour:
   UseRigidBodyForMotion: 0
   AutoUpdateKinematicState: 1
   AutoSetKinematicOnDespawn: 1
+--- !u!114 &2045795474753538436
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4194104406443413107}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b45c7eb780de2e44aad1101be8658b9c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyDamage
+  ShowTopMostFoldoutHeaderGroup: 1
+  dieExplosion: {fileID: 19800002, guid: 6ecf76dc4f268d340b2666896a954bcc, type: 3}
+--- !u!114 &2222257735859761939
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4194104406443413107}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b76f43ebc24d714f81efe06f9e8506d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyShoot
+  ShowTopMostFoldoutHeaderGroup: 1
+  enemyAmmoPrefab: {fileID: 598999903188397919, guid: 608e2cbe0ee98894c83cf25cfd7bd7e3, type: 3}
+  firePoint: {fileID: 748145910720137678}
+  bulletSpeed: 20
 --- !u!1 &4216526617428307354
 GameObject:
   m_ObjectHideFlags: 0
@@ -2046,7 +2113,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3216728985
+  GlobalObjectIdHash: 2634740936
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1

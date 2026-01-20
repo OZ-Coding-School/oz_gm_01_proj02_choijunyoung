@@ -6,12 +6,14 @@ using System.Collections.Generic;
 public class AttackState : IEnemyState
 {
     NavMeshAgent agent;
+    private EnemyShoot enemyShoot;
     List<ParticleSystem> muzzleFlash = new List<ParticleSystem>();
 
     public void EnterState(EnemyStateManager enemy)
     {
         Debug.Log("[Attack State] : State Entered");
         agent = enemy.GetComponent<NavMeshAgent>();
+        enemyShoot = enemy.GetComponent<EnemyShoot>();
 
         foreach (ParticleSystem p in enemy.GetComponent<EnemyDataManager>().muzzleFlashVFX)
         {
@@ -31,6 +33,15 @@ public class AttackState : IEnemyState
 
         enemy.GetComponent<Animator>().SetBool("IsMove", false);
         enemy.GetComponent<Animator>().SetBool("IsAttack", true);
+
+        if (enemyShoot != null)
+        {
+            EnemySight sight = enemy.GetComponent<EnemySight>();
+            if (sight.CurrentTarget != null)
+            {
+                enemyShoot.TryShoot(sight.CurrentTarget);
+            }
+        }
     }
 
     public void ExitState(EnemyStateManager enemy)
@@ -43,6 +54,7 @@ public class AttackState : IEnemyState
         }
         
         enemy.GetComponent<Animator>().SetBool("IsAttack", false);
+        muzzleFlash.Clear();
     }
 
     public void UpdateState(EnemyStateManager enemy)
