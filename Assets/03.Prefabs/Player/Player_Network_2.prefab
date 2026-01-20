@@ -6821,6 +6821,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 9e1731dd636f6874eb5a9435655f8273, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5235533770591939535}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 9e1731dd636f6874eb5a9435655f8273, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -5058446409641235796}
     - targetCorrespondingSourceObject: {fileID: 8495309878231195129, guid: 9e1731dd636f6874eb5a9435655f8273, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8085688108090530800}
@@ -7635,7 +7638,7 @@ MonoBehaviour:
   RotationMaxInterpolationTime: 0.1
   ScaleLerpSmoothing: 1
   ScaleMaxInterpolationTime: 0.1
-  AuthorityMode: 0
+  AuthorityMode: 1
   TickSyncChildren: 0
   UseUnreliableDeltas: 0
   SyncPositionX: 1
@@ -7793,6 +7796,19 @@ CapsuleCollider:
   m_Height: 1.9
   m_Direction: 1
   m_Center: {x: 0, y: 0.9, z: 0}
+--- !u!114 &-5058446409641235796
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8778856423222506026}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06ff49565cbdc5941969e204870cd4c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerSpawnManager
+  ShowTopMostFoldoutHeaderGroup: 1
 --- !u!4 &8798579176526633668 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8138145733953153601, guid: 9e1731dd636f6874eb5a9435655f8273, type: 3}

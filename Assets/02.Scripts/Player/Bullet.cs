@@ -21,7 +21,7 @@ public class Bullet : NetworkBehaviour
         Debug.Log("ÃÑ¾Ë È°¼ºÈ­");
 
         if(IsOwner) StartCoroutine(DelayShoot());
-        if (IsServer) StartCoroutine(DespawnTimer(3f));
+        StartCoroutine(DespawnTimer(5f));
     }
 
     public override void OnNetworkSpawn()
@@ -32,10 +32,8 @@ public class Bullet : NetworkBehaviour
         {
             rb.linearVelocity = transform.forward * speed;
         }
-        if (IsServer)
-        {
-            StartCoroutine(DespawnTimer(3f));
-        }
+         StartCoroutine(DespawnTimer(5f));
+        
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -71,7 +69,7 @@ public class Bullet : NetworkBehaviour
     IEnumerator DespawnTimer(float time)
     {
         yield return new WaitForSeconds(time);
-        if (IsSpawned && IsServer)
+        if (IsSpawned)
         {
             GetComponent<NetworkObject>().Despawn();
         }
