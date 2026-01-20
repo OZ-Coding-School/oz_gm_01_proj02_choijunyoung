@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 
 public class PlayerSpawner : MonoBehaviour
 {
-    [SerializeField] private GameObject playerPrefab;  // Player_Network_2 프리팹 인스펙터에서 드래그
+    [SerializeField] private GameObject playerPrefab;
 
     private Transform[] spawnPoints;
 
@@ -16,7 +16,7 @@ public class PlayerSpawner : MonoBehaviour
         GameObject[] spawnObjects = GameObject.FindGameObjectsWithTag("PlayerSpawnPoint");
         if (spawnObjects.Length == 0)
         {
-            Debug.LogError("PlayerSpawnPoint 태그 붙은 오브젝트가 하나도 없음! 태그 다시 확인해");
+            Debug.LogError("PlayerSpawnPoint 태그 붙은 오브젝트가 하나도 없음");
             return;
         }
 
@@ -28,7 +28,6 @@ public class PlayerSpawner : MonoBehaviour
 
         Debug.Log($"{spawnPoints.Length}개의 스폰 포인트 찾음");
 
-        // NetworkManager 준비됐는지 체크
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening)
         {
             Debug.LogWarning("Network 아직 안 켜짐. 1초 후 다시 시도");
@@ -41,7 +40,6 @@ public class PlayerSpawner : MonoBehaviour
 
     private void SpawnMyPlayer()
     {
-        // ★ 여기 오타 고침 ★
         if (NetworkManager.Singleton.LocalClient.PlayerObject != null)
         {
             Debug.Log("이미 내 플레이어 객체 등록됨. 스폰 스킵");

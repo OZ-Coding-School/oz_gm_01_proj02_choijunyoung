@@ -803,6 +803,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d633fbad8538625468d42db901f7cb42, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDataManager
+  ShowTopMostFoldoutHeaderGroup: 1
   _enemyData: {fileID: 11400000, guid: 4c2fd5be8944da44ebf3a0afc1bee698, type: 2}
   muzzleFlashVFX:
   - {fileID: 898116410787653482}
@@ -819,6 +820,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84e85966c6e99d641bc42bb5c510e8a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyRotation
+  ShowTopMostFoldoutHeaderGroup: 1
   turnSpeed: 360
   eyeTransform: {fileID: 70363609015833688}
 --- !u!114 &279536255671281509
@@ -833,6 +835,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5530d93a1b369b2488262aed11e3d3ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySight
+  ShowTopMostFoldoutHeaderGroup: 1
   eyeTransform: {fileID: 70363609015833688}
   viewAngle: 120
   obstacleMask:
@@ -2046,7 +2049,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3216728985
+  GlobalObjectIdHash: 2634740936
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
