@@ -62,7 +62,7 @@ public class EnemyDamage : NetworkBehaviour, IDamageable
     {
         if (!IsSpawned) return;
 
-        if (!IsOwner && !NetworkManager.Singleton.LocalClient.IsSessionOwner) return;
+        //if (!IsOwner && !NetworkManager.Singleton.LocalClient.IsSessionOwner) return;
         
         float newHealth = currentHealth.Value - incomingDamage;
         currentHealth.Value = Mathf.Max(0f, newHealth);

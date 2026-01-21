@@ -20,7 +20,7 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
     private Animator anim;
     private ColorAdjustments colorAdjustments;  // 흑백 효과용
 
-    private NetworkVariable<float> currentHealth = new NetworkVariable<float>(
+    public NetworkVariable<float> currentHealth = new NetworkVariable<float>(
         default,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
@@ -29,7 +29,7 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
     public NetworkVariable<bool> isDead = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
+        NetworkVariableWritePermission.Owner
     );
 
     private void Start()
@@ -102,7 +102,7 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
 
     private void OnHealthChanged(float previous, float current)
     {
-        Debug.Log($"[PlayerDamage] HP 변화: {previous} → {current} (Client-{OwnerClientId})");
+        Debug.Log($"[PlayerDamage Client-{OwnerClientId}] HP Changed: {previous} → {current} (LocalClientId: {NetworkManager.Singleton.LocalClientId})");
 
         if (IsOwner && current <= 1f && previous > 1f)
         {
@@ -145,20 +145,36 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
         }
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (
+            collision.gameObject.CompareTag("bullet") ||
+            collision.gameObject.layer == LayerMask.NameToLayer("Bullet") ||
+            collision.gameObject.layer == LayerMask.NameToLayer("EnemyBullet") ||
+            collision.gameObject.CompareTag("EnemyBullet"))
+        {
+            Bullet bullet = collision.gameObject.GetComponent<Bullet>();
+            EnemyBullet enemyBullet = collision.gameObject.GetComponent<EnemyBullet>();
+            if (bullet != null)
+            {
+                TakeDamage(bullet.bulletDamage.Value);
+                Debug.Log($"[PlayerDamage] Bullet 충돌! 데미지 {bullet.bulletDamage.Value} 받음 (Client-{OwnerClientId})");
+            }
+            else if(enemyBullet != null) 
+            {
+                TakeDamage(enemyBullet.bulletDamage.Value);
+                Debug.Log($"[PlayerDamage] Bullet 충돌! 데미지 {bullet.bulletDamage.Value} 받음 (Client-{OwnerClientId})");
+            }
+        }
+    }
+
     public void TakeDamage(float incomingDamage)
     {
         if (!IsSpawned || isDead.Value) return;
 
-        if (!IsOwner)
-        {
-            Debug.LogWarning("[PlayerDamage] 데미지 권한 없음 - 무시");
-            return;
-        }
-
         float newHealth = currentHealth.Value - incomingDamage;
         currentHealth.Value = Mathf.Max(0f, newHealth);
-
-        Debug.Log($"[PlayerDamage] {incomingDamage} 데미지 받음 | 남은 HP: {currentHealth.Value}");
+        Debug.Log($"[PlayerDamage] {incomingDamage} 데미지 받음 | 남은 HP: {currentHealth.Value} (Client-{OwnerClientId})");
     }
 
     public void Die()
@@ -174,12 +190,6 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
 
         // 플레이어 객체 제거
         
-
-        // 필요 시 게임 오버 처리
-        if (NetworkManager.Singleton.LocalClient.IsSessionOwner)
-        {
-            // GameManager.Instance?.ShowGameOver();  // 게임 종료 로직
-        }
     }
 
     public void OnClickDieConfirm()
