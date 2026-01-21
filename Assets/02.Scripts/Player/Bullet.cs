@@ -35,11 +35,14 @@ public class Bullet : NetworkBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (!IsOwner) return;
+        if (!HasAuthority) return;
         if (collision.gameObject.layer == LayerMask.NameToLayer("Player"))
         {
-            Damage(collision, damage, "Player");
+            ulong targetClientId = collision.gameObject.GetComponent<NetworkObject>().OwnerClientId;
+            ApplyPlayerDamageServerRpc(targetClientId, damage);
             RequestDespawnServerRpc();
+            //Damage(collision, damage, "Player");
+            //RequestDespawnServerRpc();
         }
         if (collision.gameObject.layer == LayerMask.NameToLayer("Enemy"))
         {
@@ -56,6 +59,24 @@ public class Bullet : NetworkBehaviour
         }
     }
 
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    private void ApplyPlayerDamageServerRpc(ulong targetClientId, float dmg)
+    {
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(targetClientId, out var client))
+        {
+            var playerObj = client.PlayerObject;
+            if (playerObj == null) return;
+
+            var pd = playerObj.GetComponent<PlayerDamage>();
+            if (pd == null) return;
+
+            float old = pd.currentHealth.Value;
+            float newH = Mathf.Max(0f, old - dmg);
+            pd.currentHealth.Value = newH;
+            Debug.Log($"[Bullet Damage Rpc] HP {old} → {newH} (target {targetClientId})");
+        }
+    }
+
     public void SetDamage(float dmg)
     {
         damage = dmg;
@@ -65,7 +86,7 @@ public class Bullet : NetworkBehaviour
     {
         Debug.Log("적 명중! 데미지 :" + damage);
         if(type =="Enemy") collision.gameObject.GetComponent<EnemyDamage>().TakeDamage(damage);
-        if (type == "Player") collision.gameObject.GetComponent<PlayerDamage>().TakeDamage(damage);
+        //if (type == "Player") collision.gameObject.GetComponent<PlayerDamage>().TakeDamage(damage);
 
     }
     IEnumerator DespawnTimer(float time)
@@ -76,7 +97,7 @@ public class Bullet : NetworkBehaviour
             GetComponent<NetworkObject>().Despawn();
         }
     }
-    [ServerRpc]
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     private void RequestDespawnServerRpc()
     {
         if (IsSpawned)

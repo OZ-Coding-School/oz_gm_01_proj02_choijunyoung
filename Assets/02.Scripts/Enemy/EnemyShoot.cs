@@ -30,7 +30,7 @@ public class EnemyShoot : NetworkBehaviour
     public void TryShoot(Transform target)
     {
         // Owner¸¸ ¹ß»ç
-        if (!IsOwner) return;
+        //if (!IsOwner) return;
 
         if (Time.time < nextFireTime) return;
 

@@ -61950,7 +61950,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &334958119
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -61964,7 +61964,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawner
   ShowTopMostFoldoutHeaderGroup: 1
-  enemyPrefab: {fileID: 7888843862927891198, guid: 88b94e4511530d74590a6d17f6835333, type: 3}
+  enemyPrefab: {fileID: 7888843862927891198, guid: ef0a55d0d61490c478746d393070deca, type: 3}
   enemyCount: 30
   spawnRadius: 200
   spawnPoint:

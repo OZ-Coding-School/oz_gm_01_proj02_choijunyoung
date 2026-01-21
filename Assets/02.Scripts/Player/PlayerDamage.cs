@@ -20,16 +20,16 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
     private Animator anim;
     private ColorAdjustments colorAdjustments;  // 흑백 효과용
 
-    private NetworkVariable<float> currentHealth = new NetworkVariable<float>(
+    public NetworkVariable<float> currentHealth = new NetworkVariable<float>(
         default,
         NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
+        NetworkVariableWritePermission.Owner
     );
 
     public NetworkVariable<bool> isDead = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
+        NetworkVariableWritePermission.Owner
     );
 
     private void Start()
@@ -102,7 +102,7 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
 
     private void OnHealthChanged(float previous, float current)
     {
-        Debug.Log($"[PlayerDamage] HP 변화: {previous} → {current} (Client-{OwnerClientId})");
+        Debug.Log($"[PlayerDamage Client-{OwnerClientId}] HP Changed: {previous} → {current} (LocalClientId: {NetworkManager.Singleton.LocalClientId})");
 
         if (IsOwner && current <= 1f && previous > 1f)
         {
@@ -149,11 +149,11 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
     {
         if (!IsSpawned || isDead.Value) return;
 
-        if (!IsOwner)
-        {
-            Debug.LogWarning("[PlayerDamage] 데미지 권한 없음 - 무시");
-            return;
-        }
+        //if (!IsOwner)
+        //{
+        //    Debug.LogWarning("[PlayerDamage] 데미지 권한 없음 - 무시");
+        //    return;
+        //}
 
         float newHealth = currentHealth.Value - incomingDamage;
         currentHealth.Value = Mathf.Max(0f, newHealth);
