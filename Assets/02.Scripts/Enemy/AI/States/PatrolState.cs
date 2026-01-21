@@ -1,3 +1,4 @@
+using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
@@ -9,6 +10,7 @@ public class PatrolState : IEnemyState
     bool _hasSetDestination = false; // 목적지 설정 성공 여부
     float _patrolRadius = 25f;
 
+    private Coroutine timeoutCoroutine;
     public void EnterState(EnemyStateManager enemy)
     {
         Debug.Log("[Patrol State] : State Entered");
@@ -24,6 +26,8 @@ public class PatrolState : IEnemyState
         _hasSetDestination = SetRandomDestination(enemy.transform.position, _patrolRadius);
 
         if (!_hasSetDestination) enemy.TransitionToState(new IdleState());
+        if (timeoutCoroutine != null) enemy.StopCoroutine(timeoutCoroutine);
+        timeoutCoroutine = enemy.StartCoroutine(TimeoutToIdle(enemy, 10f));
     }
 
     public void ExitState(EnemyStateManager enemy)
@@ -33,6 +37,11 @@ public class PatrolState : IEnemyState
         {
             agent.isStopped = true;
             agent.ResetPath();
+        }
+        if (timeoutCoroutine != null)
+        {
+            enemy.StopCoroutine(timeoutCoroutine);
+            timeoutCoroutine = null;
         }
         Debug.Log("[Patrol State] : State Exited");
     }
@@ -75,5 +84,26 @@ public class PatrolState : IEnemyState
         }
 
         return false; // 이동 가능한 위치를 못 찾음
+    }
+
+    IEnumerator TimeoutToIdle(EnemyStateManager enemy, float timeoutSeconds)
+    {
+        float elapsed = 0f;
+
+        while (elapsed < timeoutSeconds)
+        {
+            // 이미 도착했거나 다른 상태로 전환된 경우 타이머 중단
+            if (agent.remainingDistance <= agent.stoppingDistance ||!enemy.CurrentState.Equals(this))
+            {
+                yield break;
+            }
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        // 10초가 지났는데도 도착하지 못함 → Idle로 전환
+        Debug.Log("[PatrolState] 10초 동안 목적지 도착 실패 → IdleState로 전환");
+        enemy.TransitionToState(new IdleState());
     }
 }

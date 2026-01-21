@@ -1,17 +1,21 @@
+using System.Collections;
+using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
-using System.Collections.Generic;
 
 public class AttackState : IEnemyState
 {
     NavMeshAgent agent;
+    private EnemyShoot enemyShoot;
     List<ParticleSystem> muzzleFlash = new List<ParticleSystem>();
+    private Coroutine shootCoroutine;
 
     public void EnterState(EnemyStateManager enemy)
     {
         Debug.Log("[Attack State] : State Entered");
         agent = enemy.GetComponent<NavMeshAgent>();
+        enemyShoot = enemy.GetComponent<EnemyShoot>();
 
         foreach (ParticleSystem p in enemy.GetComponent<EnemyDataManager>().muzzleFlashVFX)
         {
@@ -31,7 +35,11 @@ public class AttackState : IEnemyState
 
         enemy.GetComponent<Animator>().SetBool("IsMove", false);
         enemy.GetComponent<Animator>().SetBool("IsAttack", true);
+
+        if (shootCoroutine != null) enemy.StopCoroutine(shootCoroutine);
+        shootCoroutine = enemy.StartCoroutine(ContinuousShoot(enemy));
     }
+
 
     public void ExitState(EnemyStateManager enemy)
     {
@@ -43,6 +51,27 @@ public class AttackState : IEnemyState
         }
         
         enemy.GetComponent<Animator>().SetBool("IsAttack", false);
+        muzzleFlash.Clear();
+
+        if (shootCoroutine != null)
+        {
+            enemy.StopCoroutine(shootCoroutine);
+            shootCoroutine = null;
+        }
+    }
+
+    IEnumerator ContinuousShoot(EnemyStateManager enemy)
+    {
+        while (true)
+        {
+            EnemySight sight = enemy.GetComponent<EnemySight>();
+            if (sight != null && sight.CurrentTarget != null)
+            {
+                enemyShoot.TryShoot(sight.CurrentTarget);
+            }
+
+            yield return new WaitForSeconds(0.3f);  // 0.3ÃÊ ÄðÅ¸ÀÓ
+        }
     }
 
     public void UpdateState(EnemyStateManager enemy)

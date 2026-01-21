@@ -8,6 +8,8 @@ TagManager:
   - dataCollector
   - Enemy
   - bullet
+  - PlayerSpawnPoint
+  - EnemyBullet
   layers:
   - Default
   - TransparentFX
@@ -19,8 +21,8 @@ TagManager:
   - Enemy
   - Wall
   - Bullet
-  - 
-  - 
+  - Player
+  - EnemyBullet
   - 
   - 
   - 

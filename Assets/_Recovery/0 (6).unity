@@ -4347,7 +4347,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObjectPoolSystem
   NetworkPrefab: {fileID: 598999903188397919, guid: 608e2cbe0ee98894c83cf25cfd7bd7e3, type: 3}
-  ObjectPoolSize: 1000
+  ObjectPoolSize: 300
   PoolInSystemScene: 1
   UsePoolForSpawn: 1
   DontDestroyOnSceneUnload: 1
@@ -6086,7 +6086,7 @@ MonoBehaviour:
     EnableNetworkLogs: 1
     NetworkTopology: 1
     UseCMBService: 0
-    AutoSpawnPlayerPrefabClientSide: 0
+    AutoSpawnPlayerPrefabClientSide: 1
     NetworkMessageMetrics: 1
     NetworkProfilingMetrics: 1
     OldPrefabList: []
