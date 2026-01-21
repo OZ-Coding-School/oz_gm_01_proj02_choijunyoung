@@ -147,12 +147,22 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("bullet") || collision.gameObject.layer == LayerMask.NameToLayer("Bullet"))
+        if (
+            collision.gameObject.CompareTag("bullet") ||
+            collision.gameObject.layer == LayerMask.NameToLayer("Bullet") ||
+            collision.gameObject.layer == LayerMask.NameToLayer("EnemyBullet") ||
+            collision.gameObject.CompareTag("EnemyBullet"))
         {
             Bullet bullet = collision.gameObject.GetComponent<Bullet>();
+            EnemyBullet enemyBullet = collision.gameObject.GetComponent<EnemyBullet>();
             if (bullet != null)
             {
                 TakeDamage(bullet.bulletDamage.Value);
+                Debug.Log($"[PlayerDamage] Bullet 충돌! 데미지 {bullet.bulletDamage.Value} 받음 (Client-{OwnerClientId})");
+            }
+            else if(enemyBullet != null) 
+            {
+                TakeDamage(enemyBullet.bulletDamage.Value);
                 Debug.Log($"[PlayerDamage] Bullet 충돌! 데미지 {bullet.bulletDamage.Value} 받음 (Client-{OwnerClientId})");
             }
         }
@@ -180,12 +190,6 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
 
         // 플레이어 객체 제거
         
-
-        // 필요 시 게임 오버 처리
-        if (NetworkManager.Singleton.LocalClient.IsSessionOwner)
-        {
-            // GameManager.Instance?.ShowGameOver();  // 게임 종료 로직
-        }
     }
 
     public void OnClickDieConfirm()

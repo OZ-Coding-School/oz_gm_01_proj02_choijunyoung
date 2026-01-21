@@ -9,7 +9,7 @@ public class EnemyBullet : NetworkBehaviour
     [SerializeField] private float speed = 20f;             // 총알 속도
     [SerializeField] private float lifeTime = 10f;          // 자동 소멸 시간
 
-    private float damage;                                   // EnemyDamage에서 받은 데미지
+    public NetworkVariable<float> bulletDamage = new NetworkVariable<float>(0f);  // EnemyDamage에서 받은 데미지
     private Rigidbody rb;
 
     private void Awake()
@@ -19,105 +19,61 @@ public class EnemyBullet : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if (HasAuthority)
+        if (IsOwner || HasAuthority)
         {
             if (rb != null)
             {
                 rb.linearVelocity = transform.forward * speed;
             }
-
             StartCoroutine(DespawnTimer(lifeTime));
         }
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (!HasAuthority) return;
-        // 플레이어만 타격 대상 (태그 또는 레이어로 필터링)
-        if (collision.gameObject.CompareTag("Player") || collision.gameObject.layer == LayerMask.NameToLayer("Player"))
-        {
-            ulong targetClientId = collision.gameObject.GetComponent<NetworkObject>().OwnerClientId;
-            ApplyDamageServerRpc(targetClientId, damage);
-            Debug.Log($"[EnemyBullet] 플레이어({targetClientId})에게 {damage} 데미지 요청");
+        bool isPlayerHit = collision.gameObject.CompareTag("Player") ||
+                           collision.gameObject.layer == LayerMask.NameToLayer("Player");
 
-            if (IsSpawned) NetworkObject.Despawn(true);
-            //기존코드
-            //    var playerDamage = collision.gameObject.GetComponent<PlayerDamage>();
-            //    if (playerDamage != null)
-            //    {
-            //        playerDamage.TakeDamage(damage);
-            //        Debug.Log($"[EnemyBullet] 플레이어에게 {damage} 데미지 적용");
-            //    }
-            //    else
-            //    {
-            //        Debug.LogWarning($"[EnemyBullet] 플레이어에 PlayerDamage 컴포넌트 없음: {collision.gameObject.name}");
-            //    }
+        bool isEnvironmentHit = collision.gameObject.layer == LayerMask.NameToLayer("Ground") ||
+                                collision.gameObject.layer == LayerMask.NameToLayer("Wall");
 
-            //    // 충돌 즉시 Despawn
-            //    RequestDespawnServerRpc();
-            //}
-            //else
-            //{
-            //    // 벽/바닥/기타 환경 충돌 → 이펙트 + Despawn
-            //    if (hitEnvFXPrefab != null)
-            //    {
-            //        ContactPoint contact = collision.contacts[0];
-            //        GameObject fx = Instantiate(hitEnvFXPrefab, contact.point, Quaternion.LookRotation(contact.normal));
-            //        Destroy(fx, 5f);  // 이펙트 수명
-        }
-        else
+        if (isPlayerHit || isEnvironmentHit)
         {
-            if(hitEnvFXPrefab != null)
+            // FX 생성 (로컬로 OK)
+            if (hitEnvFXPrefab != null && collision.contacts.Length > 0)
             {
                 ContactPoint contact = collision.contacts[0];
-                SpawnHitFXClientRpc(contact.point, contact.normal); // 모든 클라에 FX 동기화 
+                GameObject fx = Instantiate(hitEnvFXPrefab, contact.point, Quaternion.LookRotation(contact.normal));
+                Destroy(fx, 5f);
             }
-            if (IsSpawned) NetworkObject.Despawn(true);
-        }
 
-        //    RequestDespawnServerRpc();
-        //}
-    }
-
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-    private void ApplyDamageServerRpc(ulong targetClientId, float dmg)
-    {
-        Debug.Log($"[ApplyDamageRpc] Called on Client-{NetworkManager.Singleton.LocalClientId} for target {targetClientId}, dmg={dmg}");
-        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(targetClientId, out var client))
-        {
-            var playerObj = client.PlayerObject;
-            if (playerObj == null) { Debug.LogError("PlayerObject null!"); return; }
-            PlayerDamage playerDamage = client.PlayerObject?.GetComponent<PlayerDamage>();
-            if(playerDamage == null) { Debug.LogError("PlayerDamage 컴포넌트 없음!"); return; }
-
-            float old = playerDamage.currentHealth.Value;
-            float newH = Mathf.Max(0f, old - dmg);
-            playerDamage.currentHealth.Value = newH;
-            Debug.Log($"[ApplyDamageRpc] HP 업데이트: {old} → {newH} (target Client-{targetClientId})");
-        }
-        else
-        {
-            Debug.LogError($"ConnectedClients에 {targetClientId} 없음!");
+            // Despawn은 Owner에게만 요청 (TargetRpc)
+            RequestDespawnToOwnerRpc(OwnerClientId);
         }
     }
 
-    [ClientRpc]
-    private void SpawnHitFXClientRpc(Vector3 pos, Vector3 normal)
+    [Rpc(SendTo.Authority, InvokePermission = RpcInvokePermission.Everyone)]
+    private void RequestDespawnToOwnerRpc(ulong ownerClientId)
     {
-        GameObject fx = Instantiate(hitEnvFXPrefab, pos, Quaternion.LookRotation(normal));
-        Destroy(fx, 5f);
+        if (NetworkManager.Singleton.LocalClientId != ownerClientId) return;
+        if (IsSpawned)
+        {
+            NetworkObject.Despawn(true);
+        }
     }
 
     public void SetDamage(float dmg)
     {
-        damage = dmg;
+        if (IsOwner || HasAuthority)  // Owner 또는 Authority 있는 쪽만 쓰기
+        {
+            bulletDamage.Value = dmg;
+        }
     }
 
     private IEnumerator DespawnTimer(float time)
     {
         yield return new WaitForSeconds(time);
-
-        if (IsSpawned && HasAuthority)
+        if ((IsOwner || HasAuthority) && IsSpawned)
         {
             NetworkObject.Despawn(true);
         }

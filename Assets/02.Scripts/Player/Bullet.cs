@@ -28,8 +28,9 @@ public class Bullet : NetworkBehaviour
         if (IsOwner)
         {
             rb.linearVelocity = transform.forward * speed;
+            StartCoroutine(DespawnTimer(10f));
         }
-         StartCoroutine(DespawnTimer(10f));
+         
         
     }
 
@@ -66,7 +67,7 @@ public class Bullet : NetworkBehaviour
     private void DespawnBulletRpc(ulong ownerClientId)
     {
         if (NetworkManager.Singleton.LocalClientId != ownerClientId) return;
-        if (IsSpawned)
+        if (IsSpawned && IsOwner)
         {
             NetworkObject.Despawn(true);
         }
@@ -74,7 +75,10 @@ public class Bullet : NetworkBehaviour
 
     public void SetDamage(float dmg)
     {
-        bulletDamage.Value = dmg;
+        if (IsOwner)
+        {
+            bulletDamage.Value = dmg;
+        }
     }
 
     public void Damage(Collision collision, float damage, string type)
@@ -87,7 +91,7 @@ public class Bullet : NetworkBehaviour
     IEnumerator DespawnTimer(float time)
     {
         yield return new WaitForSeconds(time);
-        if (IsSpawned)
+        if (IsSpawned && IsOwner)
         {
             GetComponent<NetworkObject>().Despawn();
         }

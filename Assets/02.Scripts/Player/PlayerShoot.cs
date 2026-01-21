@@ -232,6 +232,7 @@ public class PlayerShoot : NetworkBehaviour
             }
             var bullet = inst.GetComponent<Bullet>();
             if (bullet != null) bullet.SetDamage(currentWeapon.damage);
+            inst.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.LocalClientId);
             inst.Spawn();
 
             activeBullets.Add(inst);
