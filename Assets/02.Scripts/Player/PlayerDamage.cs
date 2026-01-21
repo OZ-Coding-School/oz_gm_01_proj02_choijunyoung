@@ -23,7 +23,7 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
     public NetworkVariable<float> currentHealth = new NetworkVariable<float>(
         default,
         NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
+        NetworkVariableWritePermission.Server
     );
 
     public NetworkVariable<bool> isDead = new NetworkVariable<bool>(
@@ -145,20 +145,26 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
         }
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("bullet") || collision.gameObject.layer == LayerMask.NameToLayer("Bullet"))
+        {
+            Bullet bullet = collision.gameObject.GetComponent<Bullet>();
+            if (bullet != null)
+            {
+                TakeDamage(bullet.bulletDamage.Value);
+                Debug.Log($"[PlayerDamage] Bullet 충돌! 데미지 {bullet.bulletDamage.Value} 받음 (Client-{OwnerClientId})");
+            }
+        }
+    }
+
     public void TakeDamage(float incomingDamage)
     {
         if (!IsSpawned || isDead.Value) return;
 
-        //if (!IsOwner)
-        //{
-        //    Debug.LogWarning("[PlayerDamage] 데미지 권한 없음 - 무시");
-        //    return;
-        //}
-
         float newHealth = currentHealth.Value - incomingDamage;
         currentHealth.Value = Mathf.Max(0f, newHealth);
-
-        Debug.Log($"[PlayerDamage] {incomingDamage} 데미지 받음 | 남은 HP: {currentHealth.Value}");
+        Debug.Log($"[PlayerDamage] {incomingDamage} 데미지 받음 | 남은 HP: {currentHealth.Value} (Client-{OwnerClientId})");
     }
 
     public void Die()

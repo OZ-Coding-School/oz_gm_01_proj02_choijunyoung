@@ -6,7 +6,7 @@ public class Bullet : NetworkBehaviour
 {
     [SerializeField] GameObject hit_Env_FX_Prefab;
     [SerializeField] float speed = 20f;
-    float damage;
+    public NetworkVariable<float> bulletDamage = new NetworkVariable<float>(0f);
 
     Rigidbody rb;
 
@@ -35,51 +35,46 @@ public class Bullet : NetworkBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (!HasAuthority) return;
-        if (collision.gameObject.layer == LayerMask.NameToLayer("Player"))
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Player") ||
+        collision.gameObject.layer == LayerMask.NameToLayer("Enemy"))
         {
-            ulong targetClientId = collision.gameObject.GetComponent<NetworkObject>().OwnerClientId;
-            ApplyPlayerDamageServerRpc(targetClientId, damage);
-            RequestDespawnServerRpc();
-            //Damage(collision, damage, "Player");
-            //RequestDespawnServerRpc();
-        }
-        if (collision.gameObject.layer == LayerMask.NameToLayer("Enemy"))
-        {
-            Damage(collision, damage, "Enemy");
-            RequestDespawnServerRpc();
-        }
-        if (collision.gameObject.layer == LayerMask.NameToLayer("Ground") || collision.gameObject.layer == LayerMask.NameToLayer("Wall"))
-        {
-            ContactPoint contact = collision.GetContact(0);
-            GameObject fx = Instantiate(hit_Env_FX_Prefab, contact.point, Quaternion.LookRotation(contact.normal));
+            // FX만 생성 (로컬로 OK, 또는 ClientRpc로 동기화)
+            if (hit_Env_FX_Prefab != null)
+            {
+                ContactPoint contact = collision.contacts[0];
+                GameObject fx = Instantiate(hit_Env_FX_Prefab, contact.point, Quaternion.LookRotation(contact.normal));
+                Destroy(fx, 5f);
+            }
 
-            Destroy(fx, 5f);
-            RequestDespawnServerRpc();
+            // Despawn은 Owner에게만 요청
+            DespawnBulletRpc(OwnerClientId);
+        }
+        else if (collision.gameObject.layer == LayerMask.NameToLayer("Ground") ||
+                 collision.gameObject.layer == LayerMask.NameToLayer("Wall"))
+        {
+            if (hit_Env_FX_Prefab != null)
+            {
+                ContactPoint contact = collision.contacts[0];
+                GameObject fx = Instantiate(hit_Env_FX_Prefab, contact.point, Quaternion.LookRotation(contact.normal));
+                Destroy(fx, 5f);
+            }
+            DespawnBulletRpc(OwnerClientId);
         }
     }
 
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-    private void ApplyPlayerDamageServerRpc(ulong targetClientId, float dmg)
+    [Rpc(SendTo.Authority, InvokePermission = RpcInvokePermission.Everyone)]
+    private void DespawnBulletRpc(ulong ownerClientId)
     {
-        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(targetClientId, out var client))
+        if (NetworkManager.Singleton.LocalClientId != ownerClientId) return;
+        if (IsSpawned)
         {
-            var playerObj = client.PlayerObject;
-            if (playerObj == null) return;
-
-            var pd = playerObj.GetComponent<PlayerDamage>();
-            if (pd == null) return;
-
-            float old = pd.currentHealth.Value;
-            float newH = Mathf.Max(0f, old - dmg);
-            pd.currentHealth.Value = newH;
-            Debug.Log($"[Bullet Damage Rpc] HP {old} → {newH} (target {targetClientId})");
+            NetworkObject.Despawn(true);
         }
     }
 
     public void SetDamage(float dmg)
     {
-        damage = dmg;
+        bulletDamage.Value = dmg;
     }
 
     public void Damage(Collision collision, float damage, string type)
