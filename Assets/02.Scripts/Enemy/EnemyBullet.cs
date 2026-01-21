@@ -64,7 +64,7 @@ public class EnemyBullet : NetworkBehaviour
 
     public void SetDamage(float dmg)
     {
-        if (IsOwner || HasAuthority)  // Owner 또는 Authority 있는 쪽만 쓰기
+        if (IsOwner || HasAuthority)
         {
             bulletDamage.Value = dmg;
         }
