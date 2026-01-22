@@ -1,13 +1,16 @@
 using Unity.Netcode;
 using UnityEngine;
 
-public class EnemyTransferAuthority : NetworkBehaviour
+/// <summary>
+/// 클라이언트 Disconnect 또는 호스트 변경 시 Enemy의 Ownership을 자동 양도하는 관리자
+/// DontDestroyOnLoad로 항상 살아있으며, 호스트(서버)에서만 동작
+/// </summary>
+public class EnemyTransferAuthority : MonoBehaviour
 {
     public static EnemyTransferAuthority Instance { get; private set; }
 
     private void Awake()
     {
-        // 싱글톤 패턴 + DontDestroyOnLoad
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -17,94 +20,114 @@ public class EnemyTransferAuthority : NetworkBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        // Disconnect 이벤트 등록 (항상 살아있도록)
         if (NetworkManager.Singleton != null)
         {
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
         }
     }
 
-    public override void OnNetworkSpawn()
+    public void OnEnable()
     {
-        base.OnNetworkSpawn();
-
-        // 호스트 변경 시 이벤트 등록 (새 호스트에서만)
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsHost)
+        // 새 호스트가 되었을 때만 이벤트 등록
+        if (NetworkManager.Singleton.IsServer)
         {
-            NetworkManager.Singleton.OnServerStarted += OnHostChanged;
+            NetworkManager.Singleton.OnServerStarted += OnHostMigrated;
         }
     }
 
-    private void OnHostChanged()
+    /// <summary>
+    /// 호스트 마이그레이션이 발생했을 때 (새 호스트에서 호출됨)
+    /// Orphan 상태의 Enemy를 새 호스트에게 양도
+    /// </summary>
+    private void OnHostMigrated()
     {
-        if (!NetworkManager.Singleton.IsHost) return;
+        if (!NetworkManager.Singleton.IsServer) return;
 
-        Debug.Log("[EnemyTransferAuthority] 새 호스트가 됨 → Orphan Enemy Ownership 재배분 시작");
-
+        Debug.Log("[EnemyTransfer] 새 호스트 됨 → Orphan Enemy Ownership 재배분 시작");
         ReassignOrphanEnemies();
     }
 
-    private void OnClientDisconnected(ulong clientId)
+    /// <summary>
+    /// 클라이언트가 Disconnect 되었을 때
+    /// 해당 클라이언트가 소유하던 Enemy의 Ownership 양도
+    /// </summary>
+    private void OnClientDisconnected(ulong disconnectedClientId)
     {
-        if (!NetworkManager.Singleton.IsHost) return;
+        if (!NetworkManager.Singleton.IsServer) return;
 
-        Debug.Log($"[EnemyTransferAuthority] Client {clientId} Disconnect → Ownership 양도 시작");
-
-        ReassignOrphanEnemies(clientId);
+        Debug.Log($"[EnemyTransfer] Client {disconnectedClientId} Disconnect → Ownership 양도 시작");
+        ReassignOrphanEnemies(disconnectedClientId);
     }
 
+    /// <summary>
+    /// Orphan 상태이거나 특정 클라이언트가 소유하던 Enemy를 살아있는 클라이언트에게 양도
+    /// </summary>
+    /// <param name="specificOldOwner">특정 클라이언트 ID만 대상으로 할 때 사용 (null이면 모든 Orphan 대상)</param>
     private void ReassignOrphanEnemies(ulong? specificOldOwner = null)
     {
-        var allNetObjs = FindObjectsByType<NetworkObject>(FindObjectsSortMode.None);
-        foreach (var netObj in allNetObjs)
-        {
-            if (!netObj.CompareTag("Enemy") || !netObj.IsSpawned) continue;
+        var allNetObjects = FindObjectsByType<NetworkObject>(FindObjectsSortMode.None);
 
-            bool shouldReassign = false;
+        int reassignedCount = 0;
+
+        foreach (var netObj in allNetObjects)
+        {
+            if (!netObj.CompareTag("Enemy") || !netObj.IsSpawned)
+                continue;
+
+            bool needsReassign = false;
 
             if (specificOldOwner.HasValue)
             {
                 // 특정 클라이언트 Disconnect 시 그 클라이언트 소유 Enemy만
                 if (netObj.OwnerClientId == specificOldOwner.Value)
-                    shouldReassign = true;
+                    needsReassign = true;
             }
             else
             {
-                // Orphan 체크 (호스트 변경 시)
+                // Orphan 상태 (Owner가 0이거나 현재 연결된 클라이언트에 없음)
                 if (netObj.OwnerClientId == 0 ||
                     !NetworkManager.Singleton.ConnectedClients.ContainsKey(netObj.OwnerClientId))
-                    shouldReassign = true;
+                    needsReassign = true;
             }
 
-            if (shouldReassign)
+            if (needsReassign)
             {
-                ulong newOwner = GetAnyAliveClientId();
-                netObj.ChangeOwnership(newOwner);
-                Debug.Log($"Enemy {netObj.name} (old Owner: {netObj.OwnerClientId}) → {newOwner}에게 양도");
+                ulong newOwnerId = GetNextAliveClientId();
+                netObj.ChangeOwnership(newOwnerId);
+                Debug.Log($"[EnemyTransfer] Enemy {netObj.name} (old Owner: {netObj.OwnerClientId}) → {newOwnerId} 양도");
+                reassignedCount++;
             }
+        }
+
+        if (reassignedCount == 0)
+        {
+            Debug.Log("[EnemyTransfer] 재배분할 Orphan Enemy가 없습니다.");
         }
     }
 
-    private ulong GetAnyAliveClientId()
+    /// <summary>
+    /// 살아있는 클라이언트 중 하나를 선택 (자신 제외, 없으면 자신=호스트)
+    /// </summary>
+    private ulong GetNextAliveClientId()
     {
         foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds)
         {
-            // 자신 제외하고 첫 번째 살아있는 클라이언트
             if (clientId != NetworkManager.Singleton.LocalClientId)
                 return clientId;
         }
+
         return NetworkManager.Singleton.LocalClientId; // 아무도 없으면 호스트가 가져감
     }
 
-    private void OnDestroy()
+    private void OnDisable()
     {
         if (NetworkManager.Singleton != null)
         {
             NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
 
-            if (NetworkManager.Singleton.IsHost)
+            if (NetworkManager.Singleton.IsServer)
             {
-                NetworkManager.Singleton.OnServerStarted -= OnHostChanged;
+                NetworkManager.Singleton.OnServerStarted -= OnHostMigrated;
             }
         }
     }

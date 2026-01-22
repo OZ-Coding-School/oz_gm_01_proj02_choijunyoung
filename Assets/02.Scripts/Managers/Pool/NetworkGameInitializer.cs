@@ -5,7 +5,6 @@ public class NetworkGameInitializer : NetworkBehaviour
 {
     private bool hasInitialized = false;
 
-    // 1. 서버가 시작됐을 때 딱 한 번 실행
     private void Start()
     {
         if (NetworkManager.Singleton != null)
@@ -28,8 +27,6 @@ public class NetworkGameInitializer : NetworkBehaviour
 
     private void InitGlobalPools()
     {
-        Debug.Log("🚀 [서버] 공유 총알 풀 생성 시작 (클라이언트들에게도 자동 복제됩니다)");
-
         if (GlobalWeaponConfig.Instance == null) return;
 
         var weapons = GlobalWeaponConfig.Instance.allWeapons;

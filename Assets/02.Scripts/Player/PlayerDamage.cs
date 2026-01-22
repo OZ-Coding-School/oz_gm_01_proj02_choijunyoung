@@ -97,6 +97,11 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
         isDead.OnValueChanged -= OnDeadChanged;
         NetworkManager.Singleton.OnClientStopped -= OnClientStopped;
 
+        if (IsOwner)
+        {
+            Debug.Log("[OnNetworkDespawn] fallback → TitleScene 로드");
+            SceneManager.LoadScene("TitleScene");
+        }
         base.OnNetworkDespawn();
     }
 
@@ -203,29 +208,61 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
         {
             deathUICanvas.SetActive(false);
         }
-        yield return new WaitForSeconds(1.0f);  // 충분히 보여주기
+        yield return new WaitForSeconds(1.0f); // 사망 UI 충분히 보여주기
 
         if (IsOwner)
         {
-            Debug.Log("[DieCo] TitleScene 먼저 로드 시작 (게임 씬 정리용)");
-            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("TitleScene", LoadSceneMode.Single);
-            asyncLoad.allowSceneActivation = true;
+            Debug.Log("[DieCo] 사망 → 네트워크 연결 종료 시작");
 
-            // 로딩 완료까지 대기
-            while (!asyncLoad.isDone)
+            // 1. Shutdown 호출
+            if (NetworkManager.Singleton.IsConnectedClient)
+            {
+                NetworkManager.Singleton.Shutdown();
+                Debug.Log("[DieCo] NetworkManager Shutdown 호출 완료");
+            }
+
+            // 2. Shutdown이 완료될 때까지 대기 (타이밍 안정화)
+            yield return new WaitForSeconds(1.5f); // 1~2초 정도 여유 (NGO 정리 시간)
+
+            // 3. TitleScene 로드
+            Debug.Log("[DieCo] TitleScene 로드 시작");
+            SceneManager.LoadScene("TitleScene", LoadSceneMode.Single);
+
+            // 로드 완료 대기 (필요 시)
+            while (SceneManager.GetActiveScene().name != "TitleScene")
             {
                 yield return null;
             }
-
             Debug.Log("[DieCo] TitleScene 로드 완료!");
         }
+        // 기존 코드
+        //if (deathUICanvas != null)
+        //{
+        //    deathUICanvas.SetActive(false);
+        //}
+        //yield return new WaitForSeconds(1.0f);  // 충분히 보여주기
 
-        yield return new WaitForSeconds(0.3f);  // 씬 전환 후 약간 여유
+        //if (IsOwner)
+        //{
+        //    Debug.Log("[DieCo] TitleScene 먼저 로드 시작 (게임 씬 정리용)");
+        //    AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("TitleScene", LoadSceneMode.Single);
+        //    asyncLoad.allowSceneActivation = true;
 
-        if (NetworkManager.Singleton.IsConnectedClient)
-        {
-            Debug.Log("[DieCo] 새 씬에서 Shutdown 호출...");
-        }
+        //    // 로딩 완료까지 대기
+        //    while (!asyncLoad.isDone)
+        //    {
+        //        yield return null;
+        //    }
+
+        //    Debug.Log("[DieCo] TitleScene 로드 완료!");
+        //}
+
+        //yield return new WaitForSeconds(0.3f);  // 씬 전환 후 약간 여유
+
+        //if (NetworkManager.Singleton.IsConnectedClient)
+        //{
+        //    Debug.Log("[DieCo] 새 씬에서 Shutdown 호출...");
+        //}
 
     }
 
@@ -233,7 +270,7 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
     {
         if (IsOwner && !isHost)
         {
-            Debug.Log("[OnClientStopped] (fallback) Shutdown 완료! TitleScene 로드");
+            Debug.Log("[OnClientStopped] Shutdown 완료 감지 → TitleScene 로드");
             SceneManager.LoadScene("TitleScene");
         }
     }
