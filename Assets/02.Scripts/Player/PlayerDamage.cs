@@ -188,7 +188,8 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
 
         isDead.Value = true;
         currentHealth.Value = 0f;
-
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
         deathUICanvas.SetActive(isDead.Value);
 
         Debug.Log($"[PlayerDamage] »ç¸Á! Client-{OwnerClientId}");
@@ -218,6 +219,8 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
 
     public void ExitSession()
     {
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
         StartCoroutine(ExitSessionCo());
     }
 

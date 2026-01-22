@@ -23,6 +23,16 @@ public class PlayerAimManager : NetworkBehaviour
         aimCam3rdPF = aimCam.GetComponent<CinemachineThirdPersonFollow>();
     }
 
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+        if (IsOwner)
+        {
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+    }
+
     private void Update()
     {
         if (!IsOwner) return;
