@@ -15,6 +15,10 @@ public class EnemyStateManager : NetworkBehaviour
 
     private void Start()
     {
+        if (IsSpawned)
+        {
+            Debug.Log($"[Client {NetworkManager.LocalClientId}] Enemy {gameObject.name} Owner = {NetworkObject.OwnerClientId}, IsOwner = {NetworkObject.IsOwner}");
+        }
         Debug.Log("적 상태 매니저 실행");
         TransitionToState(new IdleState());
         AllocateComponents();
@@ -28,6 +32,7 @@ public class EnemyStateManager : NetworkBehaviour
 
     private void Update()
     {
+        if (!IsSpawned || !NetworkObject.IsOwner) return;
         CurrentState?.UpdateState(this); // 파라미터 뒤에 ?.null이 아닐때만 실행하란뜻
     }
 
@@ -42,5 +47,18 @@ public class EnemyStateManager : NetworkBehaviour
         CurrentState = newState;
         CurrentState.EnterState(this);
         
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        base.OnNetworkDespawn();
+    }
+
+    public void TransferOwnershipToHost()
+    {
+        if (NetworkObject.IsSpawned && NetworkManager.Singleton.IsConnectedClient)
+        {
+            NetworkObject.ChangeOwnership(NetworkManager.Singleton.LocalClientId); // Host에게 양도
+        }
     }
 }

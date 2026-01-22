@@ -97,6 +97,11 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
         isDead.OnValueChanged -= OnDeadChanged;
         NetworkManager.Singleton.OnClientStopped -= OnClientStopped;
 
+        if (IsOwner)
+        {
+            Debug.Log("[OnNetworkDespawn] fallback → TitleScene 로드");
+            SceneManager.LoadScene("TitleScene");
+        }
         base.OnNetworkDespawn();
     }
 
@@ -203,37 +208,43 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
         {
             deathUICanvas.SetActive(false);
         }
-        yield return new WaitForSeconds(1.0f);  // 충분히 보여주기
+        yield return new WaitForSeconds(1.0f); // 사망 UI 충분히 보여주기
 
         if (IsOwner)
         {
-            Debug.Log("[DieCo] TitleScene 먼저 로드 시작 (게임 씬 정리용)");
-            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("TitleScene", LoadSceneMode.Single);
-            asyncLoad.allowSceneActivation = true;
-
-            // 로딩 완료까지 대기
-            while (!asyncLoad.isDone)
-            {
-                yield return null;
-            }
-
-            Debug.Log("[DieCo] TitleScene 로드 완료!");
+            ExitSession();
         }
+    }
 
-        yield return new WaitForSeconds(0.3f);  // 씬 전환 후 약간 여유
+    public void ExitSession()
+    {
+        StartCoroutine(ExitSessionCo());
+    }
+
+    IEnumerator ExitSessionCo()
+    {
+        Debug.Log("[ExitSessionCo] 네트워크 연결 종료 시작");
 
         if (NetworkManager.Singleton.IsConnectedClient)
         {
-            Debug.Log("[DieCo] 새 씬에서 Shutdown 호출...");
+            NetworkManager.Singleton.Shutdown();
         }
 
+        yield return new WaitForSeconds(1.5f);
+
+        SceneManager.LoadScene("TitleScene", LoadSceneMode.Single);
+
+        while (SceneManager.GetActiveScene().name != "TitleScene")
+        {
+            yield return null;
+        }
     }
 
     private void OnClientStopped(bool isHost)
     {
         if (IsOwner && !isHost)
         {
-            Debug.Log("[OnClientStopped] (fallback) Shutdown 완료! TitleScene 로드");
+            Debug.Log("[OnClientStopped] Shutdown 완료 감지 → TitleScene 로드");
             SceneManager.LoadScene("TitleScene");
         }
     }

@@ -1,3 +1,4 @@
+using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -16,6 +17,7 @@ public class EnemyDamage : NetworkBehaviour, IDamageable
         default,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner);
+
 
     private float maxHealth;
 
@@ -57,16 +59,27 @@ public class EnemyDamage : NetworkBehaviour, IDamageable
         currentHealth.OnValueChanged -= OnHealthChanged;
         base.OnNetworkDespawn();
     }
-
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (
+            collision.gameObject.CompareTag("bullet") ||
+            collision.gameObject.layer == LayerMask.NameToLayer("Bullet"))
+        {
+            Bullet bullet = collision.gameObject.GetComponent<Bullet>();
+            if (bullet != null)
+            {
+                TakeDamage(bullet.bulletDamage.Value);
+                Debug.Log($"[EnemyDamage] Bullet 충돌! 데미지 {bullet.bulletDamage.Value} 받음 (Client-{OwnerClientId})");
+            }
+        }
+    }
     public void TakeDamage(float incomingDamage)
     {
         if (!IsSpawned) return;
 
-        //if (!IsOwner && !NetworkManager.Singleton.LocalClient.IsSessionOwner) return;
-        
         float newHealth = currentHealth.Value - incomingDamage;
         currentHealth.Value = Mathf.Max(0f, newHealth);
-
+        Debug.Log($"[PlayerDamage] {incomingDamage} 데미지 받음 | 남은 HP: {currentHealth.Value} (Client-{OwnerClientId})");
 
         if (currentHealth.Value <= 0f)
         {
@@ -75,18 +88,24 @@ public class EnemyDamage : NetworkBehaviour, IDamageable
     }
     public void Die()
     {
+        StartCoroutine(DieCo());
+    }
+
+    IEnumerator DieCo()
+    {
         if (dieExplosion != null)
         {
-            dieExplosion.transform.position = transform.position; 
+            dieExplosion.gameObject.SetActive(true);
             dieExplosion.Stop();
             dieExplosion.Play();
         }
-
+        yield return new WaitForSeconds(1.5f);
         if (IsSpawned)
         {
-            transform.root.GetComponent<NetworkObject>().Despawn(true);  
+            transform.root.GetComponent<NetworkObject>().Despawn(true);
         }
     }
+
 
     // 외부에서 현재 값 확인용
     public float GetCurrentHealth() => currentHealth.Value;
