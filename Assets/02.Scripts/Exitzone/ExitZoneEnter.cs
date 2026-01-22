@@ -82,7 +82,7 @@ public class ExitZoneEnter : NetworkBehaviour
         if (timerActive) return;
 
         timerActive = true;
-        time.Value = 10f;
+        time.Value = 40f;
         exitZoneCanvas.SetActive(true);
         Debug.Log("[ExitZone] 타이머 시작");
     }

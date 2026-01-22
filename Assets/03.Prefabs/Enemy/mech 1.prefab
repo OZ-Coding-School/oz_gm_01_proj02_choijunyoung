@@ -1838,7 +1838,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 383604159
+  GlobalObjectIdHash: 3587102426
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -2103,7 +2103,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   enemyAmmoPrefab: {fileID: 598999903188397919, guid: 608e2cbe0ee98894c83cf25cfd7bd7e3, type: 3}
   firePoint: {fileID: 748145910720137678}
-  bulletSpeed: 20
+  bulletSpeed: 35
 --- !u!1 &8372299587578870596
 GameObject:
   m_ObjectHideFlags: 0
