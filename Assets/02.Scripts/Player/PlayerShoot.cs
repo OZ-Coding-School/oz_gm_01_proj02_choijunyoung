@@ -233,31 +233,14 @@ public class PlayerShoot : NetworkBehaviour
             var bullet = inst.GetComponent<Bullet>();
             if (bullet != null) bullet.SetDamage(currentWeapon.damage);
             inst.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.LocalClientId);
-            //inst.Spawn();
-
+            
             activeBullets.Add(inst);
         }
-        #region 기존 풀링
-        //풀링 버전
-        //NetworkObject netObj = currentWeapon.bulletPrefab.GetComponent<NetworkObject>();
-        //NetworkObject poolObj = GameManager.Pool.GetFromPool(netObj, gameObject.GetComponent<PlayerUserData>().userId);
-        //poolObj.transform.SetPositionAndRotation(currentFirePoint.position, bulletRotation);
-
-        //poolObj.Spawn();
-        //activeBullets.Add(inst);
-        //Debug.Log($"총알 스폰 확인 : {poolObj.IsSpawned}");
-        #endregion
 
 
         PlayMuzzleFlash(netCurrentWeaponIndex.Value); // 내화면 출력
         PlayMuzzleFlashClientRpc(netCurrentWeaponIndex.Value); // 다른 사람 화면 출력
 
-        //기존 이펙트
-        //if (currentWeapon.muzzleFX != null && currentFirePoint != null)
-        //{
-        //    GameObject FX = Instantiate(currentWeapon.muzzleFX, currentFirePoint.position, currentFirePoint.rotation);
-        //    Destroy(FX, 0.2f);
-        //}
     }
 
     private void PlayMuzzleFlash(int weaponIndex)
@@ -313,10 +296,6 @@ public class PlayerShoot : NetworkBehaviour
         }
         activeBullets.Clear();
 
-        //foreach(NetworkObject bullet in activeBullets) 
-        //{
-        //    bullet.GetComponent<Bullet>().ReturnPool(gameObject.GetComponent<PlayerUserData>().userId);
-        //}
     }
 
 }

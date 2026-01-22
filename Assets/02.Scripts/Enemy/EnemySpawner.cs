@@ -65,8 +65,8 @@ public class EnemySpawner : NetworkBehaviour
             // 랜덤 위치 구하기
             Vector3 spawnPos = GetRandomPointOnNavMesh(center, spawnRadius);
 
-            // GetInstance(IsOwner) -> 서버가 Owner가 됩니다.
-            NetworkObject enemyNetObj = poolSystem.GetInstance(true);
+            
+            NetworkObject enemyNetObj = poolSystem.GetInstance(HasAuthority);
 
             if (enemyNetObj != null)
             {
@@ -89,7 +89,7 @@ public class EnemySpawner : NetworkBehaviour
 
                 if (!enemyNetObj.IsSpawned)
                 {
-                    enemyNetObj.Spawn(true);
+                    enemyNetObj.SpawnWithOwnership(OwnerClientId);
                 }
             }
         }

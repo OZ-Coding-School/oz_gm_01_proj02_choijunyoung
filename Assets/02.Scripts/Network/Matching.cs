@@ -22,6 +22,7 @@ public class Matching : MonoBehaviour
     [SerializeField] TextMeshProUGUI matchTimer;
     [SerializeField] TextMeshProUGUI matchTxt;
 
+    private bool _isCancelling = false; 
     private enum ConnectionState
     {
         Disconnected,
@@ -69,8 +70,25 @@ public class Matching : MonoBehaviour
         _state = ConnectionState.Connecting;
         try
         {
-            AuthenticationService.Instance.SwitchProfile(_profileName);
-            await AuthenticationService.Instance.SignInAnonymouslyAsync();
+            if (AuthenticationService.Instance.IsSignedIn)
+            {
+                Debug.Log($"이미 signed in 상태");
+            }
+            else
+            {
+                // signed in 아니면 프로필 스위치 + 로그인
+                if (!string.IsNullOrEmpty(_profileName))
+                {
+                    AuthenticationService.Instance.SwitchProfile(_profileName);  // 또는 await auth.SwitchProfileAsync(profileName);
+                    Debug.Log($"프로필 스위치: {_profileName}");
+                }
+
+                await AuthenticationService.Instance.SignInAnonymouslyAsync();
+                Debug.Log("익명 로그인 완료");
+            }
+
+            //AuthenticationService.Instance.SwitchProfile(_profileName);
+            //await AuthenticationService.Instance.SignInAnonymouslyAsync();
 
             var options = new SessionOptions()
             {
@@ -84,10 +102,39 @@ public class Matching : MonoBehaviour
 
             
         }
+        catch (AuthenticationException authEx)
+        {
+            _state = ConnectionState.Disconnected;
+            Debug.LogError($"Authentication 에러: {authEx.Message} (코드: {authEx.ErrorCode})");
+
+            // 이미 signed in 관련 에러면 무시하거나 UI 처리
+            if (authEx.ErrorCode == AuthenticationErrorCodes.ClientInvalidUserState)
+            {
+                Debug.LogWarning("이미 로그인 상태 → 그대로 진행 시도");
+                // 필요하면 여기서 강제 세션 생성 재시도 or UI 알림
+            }
+        }
         catch (Exception e)
         {
             _state = ConnectionState.Disconnected;
             Debug.LogException(e);
+
+            _isCancelling = true;
+
+            if (NetworkManager.Singleton != null && (NetworkManager.Singleton.IsConnectedClient || NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer))
+            {
+                Debug.LogWarning("NetworkManager 이미 연결됨 → 강제 Shutdown");
+                NetworkManager.Singleton.Shutdown();  // 이게 핵심! 이전 연결 끊기
+            }
+
+            if (e.Message.Contains("already a member of the lobby"))
+            {
+                if (_session != null)
+                {
+                    await _session.LeaveAsync();
+                    _session = null;
+                }
+            }
         }
     }
 
@@ -113,14 +160,14 @@ public class Matching : MonoBehaviour
         });
         
     }
-    
+
     IEnumerator MatchTimer(float timer)
     {
         matchTimer.gameObject.SetActive(true);
         matchTxt.gameObject.SetActive(true);
+        float maxWaitTime = 20f;
 
-        
-        while(_state != ConnectionState.Connected)
+        while (_state != ConnectionState.Connected && timer < maxWaitTime && !_isCancelling)
         {
             timer += Time.deltaTime;
             string timeStr;
@@ -130,6 +177,22 @@ public class Matching : MonoBehaviour
         }
         matchTimer.gameObject.SetActive(false);
         matchTxt.gameObject.SetActive(false);
-    }
 
+        if (_state != ConnectionState.Connected)
+        {
+            _state = ConnectionState.Disconnected;
+            _isCancelling = false;
+
+            matchTxt.text = "Matching Failed";
+            matchTxt.gameObject.SetActive(true);
+
+            if (_session != null)
+            {
+                _session.LeaveAsync().GetAwaiter().GetResult();
+                _session = null;
+            }
+
+
+        }
+    }
 }

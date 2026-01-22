@@ -84,7 +84,7 @@ public class Bullet : NetworkBehaviour
     public void Damage(Collision collision, float damage, string type)
     {
         Debug.Log("적 명중! 데미지 :" + damage);
-        if(type =="Enemy") collision.gameObject.GetComponent<EnemyDamage>().TakeDamage(damage);
+        //if(type =="Enemy") collision.gameObject.GetComponent<EnemyDamage>().TakeDamage(damage);
         //if (type == "Player") collision.gameObject.GetComponent<PlayerDamage>().TakeDamage(damage);
 
     }
