@@ -247,5 +247,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Bullet
   ShowTopMostFoldoutHeaderGroup: 1
   hit_Env_FX_Prefab: {fileID: 100002, guid: 957385c45b877e645a128e11a3efb2f9, type: 3}
-  speed: 30
-  damage: 0
+  speed: 50
+  bulletDamage:
+    m_InternalValue: 0
