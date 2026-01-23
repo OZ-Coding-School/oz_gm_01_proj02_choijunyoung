@@ -162,6 +162,7 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
             EnemyBullet enemyBullet = collision.gameObject.GetComponent<EnemyBullet>();
             if (bullet != null)
             {
+                if (bullet.OwnerClientId == OwnerClientId) return;
                 TakeDamage(bullet.bulletDamage.Value);
                 Debug.Log($"[PlayerDamage] Bullet 충돌! 데미지 {bullet.bulletDamage.Value} 받음 (Client-{OwnerClientId})");
             }

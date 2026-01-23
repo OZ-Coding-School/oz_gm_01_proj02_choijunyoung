@@ -10,13 +10,13 @@ public class PlayerShoot : NetworkBehaviour
     const int PISTOLINDEX = 2;
     private string[] ATK_POSE = { "TakeRifle", "TakePistol" };
 
-    private List<int> magazineCount = new List<int>();
+    public List<int> magazineCount = new List<int>();
     private List<NetworkObject> activeBullets = new List<NetworkObject>();
 
     [SerializeField] private Transform[] pistol = new Transform[2];
     [SerializeField] private Transform[] rifle = new Transform[2];
 
-    private NetworkVariable<int> netCurrentWeaponIndex = new NetworkVariable<int>(
+    public NetworkVariable<int> netCurrentWeaponIndex = new NetworkVariable<int>(
         0,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner
@@ -25,7 +25,7 @@ public class PlayerShoot : NetworkBehaviour
     Animator anim;
 
     [SerializeField] SOWeapon[] weaponData;
-    SOWeapon currentWeapon;
+    private SOWeapon currentWeapon;
 
     [SerializeField] Transform[] firePoints;
     private PlayerInputsManager input;
@@ -180,15 +180,15 @@ public class PlayerShoot : NetworkBehaviour
 
     }
 
-    private bool previousStateIsWeapon(int weaponIdx)
-    {
-        return netCurrentWeaponIndex.Value == weaponIdx;
-    }
+    //private bool previousStateIsWeapon(int weaponIdx)
+    //{
+    //    return netCurrentWeaponIndex.Value == weaponIdx;
+    //}
 
     private void Shoot()
     {
         if (currentWeapon == null || currentPoolSystem == null) return;
-
+        PlayerCurrentWeaponInfo currentWeaponInfo = FindAnyObjectByType<PlayerCurrentWeaponInfo>();
         if (magazineCount[0] <= 0)
         {
             Reload(0);
@@ -200,10 +200,12 @@ public class PlayerShoot : NetworkBehaviour
         else if (currentWeapon.name == "Rifle")
         {
             magazineCount[0]--;
+            currentWeaponInfo.UpdateCurrentAmmo(magazineCount[0]);
         }
         else if (currentWeapon.name == "Pistol")
         {
             magazineCount[1]--;
+            currentWeaponInfo.UpdateCurrentAmmo(magazineCount[1]);
         }
         if (magazineCount[0] < 1 || magazineCount[1] < 1) return;
 
@@ -285,7 +287,10 @@ public class PlayerShoot : NetworkBehaviour
 
     private void Reload(int num)
     {
+        PlayerCurrentWeaponInfo currentWeaponInfo = FindAnyObjectByType<PlayerCurrentWeaponInfo>();
+
         magazineCount[num] = currentWeapon.maxAmmo;
+
         for (int i = activeBullets.Count - 1; i >= 0; i--)
         {
             NetworkObject bullet = activeBullets[i];
@@ -296,6 +301,7 @@ public class PlayerShoot : NetworkBehaviour
         }
         activeBullets.Clear();
 
+        currentWeaponInfo.UpdateCurrentAmmo(magazineCount[num]);
     }
 
 }

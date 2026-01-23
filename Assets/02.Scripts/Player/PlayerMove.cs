@@ -9,7 +9,7 @@ public class PlayerMove : NetworkBehaviour
 
     [Header("Movement Settings")]
     [SerializeField] private float speed = 5f;
-    [SerializeField] private float rotationSpeed = 120f;
+    [SerializeField] private float rotationSpeed = 10f;
     [SerializeField] private float jumpHeight = 2f;
     [SerializeField] private float gravityScale = 2f;
     [SerializeField] private LayerMask groundLayer;
@@ -30,6 +30,10 @@ public class PlayerMove : NetworkBehaviour
 
     private Rigidbody rb;
     private float currentAngularY = 0f;
+    //2026-01-23 추가 코드(물리회전으로 전환)
+    private float targetRotationY = 0f;
+    //2026-01-23 추가 코드(물리회전으로 전환)
+
     private bool isGrounded;
     private Animator anim;
 
@@ -39,11 +43,18 @@ public class PlayerMove : NetworkBehaviour
         anim = GetComponent<Animator>();
         rb.linearDamping = 0f;
         rb.angularDamping = 5f;
+        //2026-01-23 추가 코드(물리회전으로 전환)
+        rb.constraints = RigidbodyConstraints.FreezeRotation;
+        //2026-01-23 추가 코드(물리회전으로 전환)
     }
 
     private void Start()
     {
         rb.useGravity = false;
+
+        //2026-01-23 추가 코드(물리회전으로 전환)
+        targetRotationY = transform.eulerAngles.y;
+        //2026-01-23 추가 코드(물리회전으로 전환)
     }
 
     private void Update()
@@ -61,11 +72,12 @@ public class PlayerMove : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        //CheckGround();
         isGrounded = IsGrounded();
 
         float mouseX = Input.GetAxis("Mouse X") * rotationSpeed;
-        Rotate(mouseX);
+        //2026-01-23 추가 코드(물리회전으로 전환)
+        HandleRotation(mouseX);
+        //2026-01-23 추가 코드(물리회전으로 전환)
 
         float moveForward = Input.GetAxisRaw("Vertical");
         float moveRight = Input.GetAxisRaw("Horizontal");
@@ -80,17 +92,24 @@ public class PlayerMove : NetworkBehaviour
 
     }
 
-    //private void CheckGround()
-    //{
-    //    Vector3 rayStart = transform.position + Vector3.up * 0.2f;
-    //    isGrounded = Physics.Raycast(rayStart, Vector3.down, groundCheckDistance, groundLayer);
-    //}
-
     public bool IsGrounded()
     {
-        Vector3 boxSize = new Vector3(transform.lossyScale.x, 0.4f, transform.lossyScale.z);
+        //Vector3 boxSize = new Vector3(transform.lossyScale.x, 0.4f, transform.lossyScale.z);
+        Vector3 boxSize = new Vector3(0.28f, 0.4f, 0.28f);
         return Physics.CheckBox(groundCheck.position, boxSize, Quaternion.identity, groundLayer);
     }
+    //2026-01-23 추가 코드(물리회전으로 전환)
+    private void HandleRotation(float mouseX)
+    {
+        if(Mathf.Abs(mouseX) > 0.01f)
+        {
+            targetRotationY += mouseX * rotationSpeed * Time.fixedDeltaTime;
+        }
+        float smoothY = Mathf.LerpAngle(rb.rotation.eulerAngles.y, targetRotationY, Time.fixedDeltaTime / rotationSmoothTime);
+        Quaternion targetRot = Quaternion.Euler(0f, smoothY, 0f);
+        rb.MoveRotation(targetRot);
+    }
+    //2026-01-23 추가 코드(물리회전으로 전환)
 
     private void Move(float forward, float right, float currentSpeed)
     {
@@ -117,14 +136,6 @@ public class PlayerMove : NetworkBehaviour
 
         rb.linearVelocity = velocity; // 최종 적용
         anim.SetFloat("Velocity", animPlaySpeed);
-    }
-
-    private void Rotate(float mouseX)
-    {
-        float targetAngularY = mouseX;
-        currentAngularY = Mathf.Lerp(currentAngularY, targetAngularY, Time.fixedDeltaTime / rotationSmoothTime);
-        rb.angularVelocity = new Vector3(0f, currentAngularY, 0f);
-        transform.rotation = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
     }
 
     private void Jump()
@@ -154,7 +165,7 @@ public class PlayerMove : NetworkBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
-        Vector3 boxSize = new Vector3(transform.lossyScale.x, 0.4f, transform.lossyScale.z);
+        Vector3 boxSize = new Vector3(0.28f, 0.4f, 0.28f);
         Gizmos.DrawWireCube(groundCheck.position, boxSize);
     }
 
