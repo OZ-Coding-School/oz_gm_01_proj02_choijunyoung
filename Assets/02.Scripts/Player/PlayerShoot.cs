@@ -10,6 +10,8 @@ public class PlayerShoot : NetworkBehaviour
     const int PISTOLINDEX = 2;
     private string[] ATK_POSE = { "TakeRifle", "TakePistol" };
 
+    private bool isReloading = false;
+
     public List<int> magazineCount = new List<int>();
     private List<NetworkObject> activeBullets = new List<NetworkObject>();
 
@@ -192,7 +194,7 @@ public class PlayerShoot : NetworkBehaviour
 
     private void Shoot()
     {
-        if (currentWeapon == null || currentPoolSystem == null) return;
+        if (currentWeapon == null || currentPoolSystem == null || isReloading) return;
         PlayerCurrentWeaponInfo currentWeaponInfo = FindAnyObjectByType<PlayerCurrentWeaponInfo>();
         if (magazineCount[0] <= 0)
         {
@@ -324,9 +326,13 @@ public class PlayerShoot : NetworkBehaviour
 
     private void Reload(int num)
     {
+        if (isReloading) return;
+        isReloading = true;
+        
         PlayerCurrentWeaponInfo currentWeaponInfo = FindAnyObjectByType<PlayerCurrentWeaponInfo>();
 
         StartCoroutine(ReloadAnimSequence());
+        StartCoroutine(Reloading());
         magazineCount[num] = currentWeapon.maxAmmo;
         for (int i = activeBullets.Count - 1; i >= 0; i--)
         {
@@ -339,8 +345,6 @@ public class PlayerShoot : NetworkBehaviour
         activeBullets.Clear();
 
         currentWeaponInfo.UpdateCurrentAmmo(magazineCount[num]);
-
-        
 
     }
 
@@ -390,6 +394,11 @@ public class PlayerShoot : NetworkBehaviour
         weaponAudioSource.maxDistance = 150f;
     }
 
+    IEnumerator Reloading()
+    {
+        yield return new WaitForSecondsRealtime(2f);
+        isReloading = false;
+    }
     
 }
 

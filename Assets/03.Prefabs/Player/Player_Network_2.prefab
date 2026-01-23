@@ -208,7 +208,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2255877311
+  GlobalObjectIdHash: 4070428607
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -1347,7 +1347,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3425663410
+  GlobalObjectIdHash: 1299438984
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -8120,7 +8120,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3490233086
+  GlobalObjectIdHash: 2936653967
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 0
@@ -8287,9 +8287,9 @@ MonoBehaviour:
   - {fileID: 7250274889163676681}
   weaponAudioSource: {fileID: 2881944111519723728}
   shotClips:
-  - {fileID: 8300000, guid: d40330822ccea6140b664c0560d5022f, type: 3}
+  - {fileID: 8300000, guid: 34b439bf70b80a6409eadecc6be92d68, type: 3}
   - {fileID: 8300000, guid: 6739c01659ad96d47987f4ddee226b36, type: 3}
-  reloadClip: {fileID: 0}
+  reloadClip: {fileID: 8300000, guid: 299490e46ad8cb146aec785d76363565, type: 3}
 --- !u!114 &1722095884747133920
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8532,7 +8532,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.503
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -8606,7 +8606,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 1
+      value: 0.993
       inSlope: 0
       outSlope: 0
       tangentMode: 0
