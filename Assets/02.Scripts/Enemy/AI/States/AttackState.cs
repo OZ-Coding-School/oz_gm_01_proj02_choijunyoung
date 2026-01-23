@@ -10,12 +10,16 @@ public class AttackState : IEnemyState
     private EnemyShoot enemyShoot;
     List<ParticleSystem> muzzleFlash = new List<ParticleSystem>();
     private Coroutine shootCoroutine;
+    AudioSource audio;
+    AudioClip shootClip;
 
     public void EnterState(EnemyStateManager enemy)
     {
         Debug.Log("[Attack State] : State Entered");
         agent = enemy.GetComponent<NavMeshAgent>();
         enemyShoot = enemy.GetComponent<EnemyShoot>();
+        audio = enemy.GetComponent<AudioSource>();
+        shootClip = enemy.GetComponent<EnemyStateManager>().shootClip;
 
         foreach (ParticleSystem p in enemy.GetComponent<EnemyDataManager>().muzzleFlashVFX)
         {
@@ -27,6 +31,9 @@ public class AttackState : IEnemyState
             muzzle.gameObject.SetActive(true);
             muzzle.Stop();
             muzzle.Play();
+            audio.clip = shootClip;
+            audio.Stop();
+            audio.Play();
         }
         
         // 공격 중에는 이동 완전 정지
@@ -48,6 +55,7 @@ public class AttackState : IEnemyState
         {
             muzzle.gameObject.SetActive(false);
             muzzle.Stop();
+            audio.Stop();
         }
         
         enemy.GetComponent<Animator>().SetBool("IsAttack", false);

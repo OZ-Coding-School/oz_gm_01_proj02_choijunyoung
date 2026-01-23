@@ -1723,12 +1723,12 @@ AudioSource:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7888843862927891198}
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 0.3
   m_Pitch: 1
   Loop: 0
@@ -1736,9 +1736,9 @@ AudioSource:
   Spatialize: 0
   SpatializePostEffects: 0
   Priority: 128
-  DopplerLevel: 1
+  DopplerLevel: 0
   MinDistance: 1
-  MaxDistance: 500
+  MaxDistance: 200
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0
@@ -1773,7 +1773,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -1917,6 +1917,7 @@ MonoBehaviour:
   Avatar: {fileID: 8683938706909967596}
   Player: {fileID: 0}
   _rb: {fileID: 0}
+  shootClip: {fileID: 8300000, guid: d40330822ccea6140b664c0560d5022f, type: 3}
 --- !u!136 &3836912295067882125
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -2087,6 +2088,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDamage
   ShowTopMostFoldoutHeaderGroup: 1
+  enemyAudioSource: {fileID: 3742991079422656840}
+  dieClip: {fileID: 8300000, guid: d47e6ed162da1f740ad807d00f4679f3, type: 3}
   dieExplosion: {fileID: 7028521872538518789}
 --- !u!114 &4019533274556538703
 MonoBehaviour:
@@ -2103,7 +2106,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   enemyAmmoPrefab: {fileID: 598999903188397919, guid: 608e2cbe0ee98894c83cf25cfd7bd7e3, type: 3}
   firePoint: {fileID: 748145910720137678}
-  bulletSpeed: 35
+  bulletSpeed: 100
 --- !u!1 &8372299587578870596
 GameObject:
   m_ObjectHideFlags: 0

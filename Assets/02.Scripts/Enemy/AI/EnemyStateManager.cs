@@ -13,6 +13,8 @@ public class EnemyStateManager : NetworkBehaviour
 
     float _maxHP, _currentHP;
 
+    [SerializeField] public AudioClip shootClip;
+
     private void Start()
     {
         if (IsSpawned)

@@ -60,9 +60,10 @@ public class PlayerAimManager : NetworkBehaviour
     {
         if (input.aim)
         {
+            
             aimCam.gameObject.SetActive(true);
+            gameObject.GetComponent<PlayerMove>().SetMoveSpeed(2f);
             aimCam3rdPF.CameraSide = mainCam.CameraSide < 0.2f ? 0.25f : 0.75f;
-            //aimImage.SetActive(true);
 
             Vector3 targetPosition = Vector3.zero;
             Transform camTransform = Camera.main.transform;
@@ -95,6 +96,7 @@ public class PlayerAimManager : NetworkBehaviour
             if (aimCam.gameObject.activeSelf)
             {
                 Debug.Log("<< Á¶ÁØ ÇØÁ¦! (Aim Cam ²¨Áü)");
+                gameObject.GetComponent<PlayerMove>().SetMoveSpeed(5f);
                 aimCam.gameObject.SetActive(false);
             }
         }

@@ -100,10 +100,13 @@ public class PlayerShoot : NetworkBehaviour
 
             if (nextState == RIFLEINDEX)
             {
+                anim.SetLayerWeight(2, 0);
+                anim.SetLayerWeight(1, 1);
                 anim.SetTrigger("RifleDraw");
             }
             else if (currentState == RIFLEINDEX && nextState == 0)
             {
+                anim.SetLayerWeight(1, 0);
                 anim.SetTrigger("RifleHolster");
             }
         }
@@ -115,10 +118,13 @@ public class PlayerShoot : NetworkBehaviour
 
             if (nextState == PISTOLINDEX)
             {
+                anim.SetLayerWeight(1, 0);
+                anim.SetLayerWeight(2, 1);
                 anim.SetTrigger("PistolDraw");
             }
             else if (currentState == PISTOLINDEX && nextState == 0)
             {
+                anim.SetLayerWeight(2, 0);
                 anim.SetTrigger("PistolHolster");
             }
         }

@@ -6,15 +6,16 @@ public class PlayerMove : NetworkBehaviour
 {
     const float DEFAULT_CONVERT_MOVESPEED = 3f;
     const float DEFAULT_ANIMATION_PLAYSPEED = 0.9f;
+    const float DEFAULT_MOVESPEED = 5f;
 
     [Header("Movement Settings")]
-    [SerializeField] private float speed = 5f;
+    [SerializeField] public float speed = DEFAULT_MOVESPEED;
     [SerializeField] private float rotationSpeed = 10f;
     [SerializeField] private float jumpHeight = 2f;
     [SerializeField] private float gravityScale = 2f;
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private float groundCheckDistance = 2f;
-    [SerializeField] private float runMultiplier = 2f;
+    [SerializeField] private float runMultiplier = 2.3f;
     public Vector3 direction { get; private set; }
 
     [Header("Rotation Smoothing")]
@@ -177,5 +178,10 @@ public class PlayerMove : NetworkBehaviour
         }
 
         return (changedMoveSpeed - DEFAULT_CONVERT_MOVESPEED) * 0.1f;
+    }
+
+    public void SetMoveSpeed(float m_speed)
+    {
+        speed = m_speed;
     }
 }

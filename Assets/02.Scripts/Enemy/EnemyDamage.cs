@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class EnemyDamage : NetworkBehaviour, IDamageable
 {
+    [SerializeField] AudioSource enemyAudioSource;
+    [SerializeField] AudioClip dieClip;
+
     private EnemyData enemyData;
     private float curhealth;
     [SerializeField] private ParticleSystem dieExplosion;
@@ -98,12 +101,30 @@ public class EnemyDamage : NetworkBehaviour, IDamageable
             dieExplosion.gameObject.SetActive(true);
             dieExplosion.Stop();
             dieExplosion.Play();
+            PlayDieSound();
+            PlayDieSoundClientRpc();
         }
         yield return new WaitForSeconds(1.5f);
         if (IsSpawned)
         {
             transform.root.GetComponent<NetworkObject>().Despawn(true);
         }
+    }
+
+    private void PlayDieSound()
+    {
+        AudioClip clipToPlay = dieClip;
+        if (clipToPlay == null || enemyAudioSource == null) return;
+
+        enemyAudioSource.PlayOneShot(clipToPlay);
+    }
+
+    [ClientRpc]
+    private void PlayDieSoundClientRpc()
+    {
+        if (IsOwner) return;
+
+        PlayDieSound();
     }
 
 

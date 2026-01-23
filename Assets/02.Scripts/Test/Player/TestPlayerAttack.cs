@@ -23,6 +23,7 @@ public class TestPlayerAttack : MonoBehaviour
     private float lastFireTime = 0f; // 발사 쿨 타임 관리 변수
     private TestPlayerAimManager aimManager;
 
+
     private void Awake()
     {
         isActive = true;

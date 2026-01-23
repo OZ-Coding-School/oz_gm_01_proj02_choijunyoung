@@ -37,7 +37,7 @@ public class EnemyShoot : NetworkBehaviour
         if (ammoPool == null || firePoint == null || target == null) return;
 
         // 방향 계산
-        Vector3 dir = (target.position - firePoint.position).normalized;
+        Vector3 dir = (target.position + (Vector3.up * 1f)- firePoint.position).normalized;
         Quaternion bulletRot = Quaternion.LookRotation(dir);
 
         // 풀에서 총알 가져오기
