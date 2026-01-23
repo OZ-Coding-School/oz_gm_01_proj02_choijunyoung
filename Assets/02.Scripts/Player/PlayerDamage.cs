@@ -121,31 +121,24 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
         {
             Debug.Log($"[PlayerDamage] 플레이어 사망 (Client-{OwnerClientId})");
 
-            // 1. 사망 애니메이션 트리거 (모든 클라이언트에서)
+            // 사망 애니메이션 트리거 (모든 클라이언트에서)
             if (anim != null)
             {
                 anim.SetBool("IsDead", true);
             }
 
-            // 2. 움직임 스크립트 비활성화 (로컬 플레이어만)
+            // 움직임 스크립트 비활성화 (로컬 플레이어만)
             if (IsOwner && playerMovementScript != null)
             {
                 playerMovementScript.enabled = false;
                 playerShootScript.enabled = false;
             }
 
-            // 3. 사망 UI 표시 (로컬 플레이어만)
+            // 사망 UI 표시 (로컬 플레이어만)
             if (IsOwner && deathUICanvas != null)
             {
                 deathUICanvas.SetActive(true);
                 Debug.Log("[PlayerDamage] 사망 UI 표시");
-            }
-
-            // 4. 카메라 흑백 효과 (로컬 플레이어만 적용 - Post Processing)
-            if (IsOwner && colorAdjustments != null)
-            {
-                colorAdjustments.saturation.value = -100f;  // 완전 흑백
-                Debug.Log("[PlayerDamage] 카메라 흑백 효과 적용");
             }
         }
     }

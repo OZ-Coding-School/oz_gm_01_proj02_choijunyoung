@@ -16,6 +16,8 @@ public class PlayerShoot : NetworkBehaviour
     [SerializeField] private Transform[] pistol = new Transform[2];
     [SerializeField] private Transform[] rifle = new Transform[2];
 
+    [SerializeField] private Transform[] reloadMagazine = new Transform[2];
+
     public NetworkVariable<int> netCurrentWeaponIndex = new NetworkVariable<int>(
         0,
         NetworkVariableReadPermission.Everyone,
@@ -33,6 +35,9 @@ public class PlayerShoot : NetworkBehaviour
     private PlayerAimManager aimManager;
     [SerializeField] float bulletSpeed = 20f;
     [SerializeField] private ParticleSystem[] muzzleFlashParticles;
+    [SerializeField] private AudioSource weaponAudioSource;
+    [SerializeField] private AudioClip[] shotClips;
+    [SerializeField] private AudioClip reloadClip;
 
     private ObjectPoolSystem currentPoolSystem;
 
@@ -241,7 +246,10 @@ public class PlayerShoot : NetworkBehaviour
 
 
         PlayMuzzleFlash(netCurrentWeaponIndex.Value); // 내화면 출력
+        PlayShotSound(netCurrentWeaponIndex.Value);
+
         PlayMuzzleFlashClientRpc(netCurrentWeaponIndex.Value); // 다른 사람 화면 출력
+        PlayShotSoundClientRpc(netCurrentWeaponIndex.Value);
 
     }
 
@@ -280,17 +288,46 @@ public class PlayerShoot : NetworkBehaviour
     {
 
         if (IsOwner) return;
-
         PlayMuzzleFlash(weaponIndex);
     }
 
+
+
+    private void PlayShotSound(int weaponIndex)
+    {
+        AudioClip clipToPlay = null;
+
+        if (weaponIndex == RIFLEINDEX)
+        {
+            clipToPlay = shotClips[0];  
+        }
+        else if (weaponIndex == PISTOLINDEX)
+        {
+            clipToPlay = shotClips[1];          
+        }
+
+        if (clipToPlay == null || weaponAudioSource == null) return;
+
+        weaponAudioSource.PlayOneShot(clipToPlay);
+
+        weaponAudioSource.pitch = Random.Range(0.25f, 0.35f);
+        weaponAudioSource.PlayOneShot(clipToPlay, Random.Range(0.3f, 0.4f));
+    }
+
+    [ClientRpc]
+    private void PlayShotSoundClientRpc(int weaponIndex)
+    {
+        if (IsOwner) return;
+
+        PlayShotSound(weaponIndex);
+    }
 
     private void Reload(int num)
     {
         PlayerCurrentWeaponInfo currentWeaponInfo = FindAnyObjectByType<PlayerCurrentWeaponInfo>();
 
+        StartCoroutine(ReloadAnimSequence());
         magazineCount[num] = currentWeapon.maxAmmo;
-
         for (int i = activeBullets.Count - 1; i >= 0; i--)
         {
             NetworkObject bullet = activeBullets[i];
@@ -302,7 +339,57 @@ public class PlayerShoot : NetworkBehaviour
         activeBullets.Clear();
 
         currentWeaponInfo.UpdateCurrentAmmo(magazineCount[num]);
+
+        
+
     }
 
+    IEnumerator ReloadAnimSequence()
+    {
+        if (netCurrentWeaponIndex.Value == 0) yield break;
+        if(netCurrentWeaponIndex.Value == 1)
+        {
+            reloadMagazine[0].gameObject.SetActive(true);
+            anim.SetTrigger("RifleReload");
+            PlayReloadSound(netCurrentWeaponIndex.Value);
+            PlayReloadSoundClientRpc(netCurrentWeaponIndex.Value);
+            yield return new WaitForSeconds(2f);
+            reloadMagazine[0].gameObject.SetActive(false);
+        }
+        else if (netCurrentWeaponIndex.Value == 2)
+        {
+            reloadMagazine[1].gameObject.SetActive(true);
+            anim.SetTrigger("PistolReload");
+            PlayReloadSound(netCurrentWeaponIndex.Value);
+            PlayReloadSoundClientRpc(netCurrentWeaponIndex.Value);
+            yield return new WaitForSeconds(1.5f);
+            reloadMagazine[0].gameObject.SetActive(false);
+        }
+    }
+
+    private void PlayReloadSound(int weaponIndex)
+    {
+        weaponAudioSource.maxDistance = 10f;
+        AudioClip clipToPlay = reloadClip;
+        if (clipToPlay == null || weaponAudioSource == null) return;
+
+        weaponAudioSource.PlayOneShot(clipToPlay);
+        StartCoroutine(DelaySetMaxDistance());
+    }
+
+    [ClientRpc]
+    private void PlayReloadSoundClientRpc(int weaponIndex)
+    {
+        if (IsOwner) return;
+
+        PlayShotSound(weaponIndex);
+    }
+    IEnumerator DelaySetMaxDistance()
+    {
+        yield return new WaitForSeconds(2f);
+        weaponAudioSource.maxDistance = 150f;
+    }
+
+    
 }
 

@@ -937,7 +937,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &158486172
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7531,7 +7531,7 @@ GameObject:
   - component: {fileID: 1567380162}
   - component: {fileID: 1567380161}
   m_Layer: 5
-  m_Name: MAINHUB_btn
+  m_Name: Inventory_Btn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8364,7 +8364,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3855807025
+  GlobalObjectIdHash: 806827102
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -8526,12 +8526,12 @@ GameObject:
   - component: {fileID: 1813131504}
   - component: {fileID: 1813131503}
   m_Layer: 5
-  m_Name: TRADERS_btn
+  m_Name: Inventory_Btn (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1813131502
 RectTransform:
   m_ObjectHideFlags: 0
@@ -10243,7 +10243,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1977972606
 RectTransform:
   m_ObjectHideFlags: 0
