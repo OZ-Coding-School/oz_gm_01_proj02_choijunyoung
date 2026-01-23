@@ -121,12 +121,6 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
         {
             Debug.Log($"[PlayerDamage] 플레이어 사망 (Client-{OwnerClientId})");
 
-            // 사망 애니메이션 트리거 (모든 클라이언트에서)
-            if (anim != null)
-            {
-                anim.SetBool("IsDead", true);
-            }
-
             // 움직임 스크립트 비활성화 (로컬 플레이어만)
             if (IsOwner && playerMovementScript != null)
             {
@@ -184,7 +178,8 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
         currentHealth.Value = 0f;
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
-        deathUICanvas.SetActive(isDead.Value);
+        StartCoroutine(DieAnimSequence());
+        StartCoroutine(DelayDisableScripts(0.5f));
 
         Debug.Log($"[PlayerDamage] 사망! Client-{OwnerClientId}");
 
@@ -203,7 +198,7 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
         {
             deathUICanvas.SetActive(false);
         }
-        yield return new WaitForSeconds(1.0f); // 사망 UI 충분히 보여주기
+        yield return new WaitForSeconds(1.0f);
 
         if (IsOwner)
         {
@@ -245,6 +240,32 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
             SceneManager.LoadScene("TitleScene");
         }
     }
+    IEnumerator DelayDisableScripts(float delay)
+    {
+        
+
+        yield return new WaitForSeconds(delay);
+
+        if (playerMovementScript != null)
+            playerMovementScript.enabled = false;
+        if (playerShootScript != null)
+            playerShootScript.enabled = false;
+
+        // Death UI는 즉시 표시해도 OK
+        if (deathUICanvas != null)
+            deathUICanvas.SetActive(true);
+    }
+
+    IEnumerator DieAnimSequence()
+    {
+        // 사망 애니메이션 트리거 (모든 클라이언트에서)
+        if (anim != null)
+        {
+            anim.SetBool("IsDead", true);
+        }
+        yield return new WaitForSecondsRealtime(2.5f);
+    }
+
 
     public float GetCurrentHealth() => currentHealth.Value;
     public bool IsDead() => isDead.Value;
