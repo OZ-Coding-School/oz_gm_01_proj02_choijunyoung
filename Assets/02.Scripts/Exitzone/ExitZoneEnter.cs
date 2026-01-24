@@ -9,6 +9,11 @@ public class ExitZoneEnter : NetworkBehaviour
 {
     [SerializeField] GameObject exitZoneCanvas;
     [SerializeField] private TextMeshProUGUI timerTxt;
+    [SerializeField] AudioSource audioSource;
+    [SerializeField] AudioClip enterSound;
+    [SerializeField] AudioClip exitSound;
+    [SerializeField] AudioClip countDownSound;
+    private int lastCountdownSecond = 11;
 
     private NetworkVariable<float> time = new NetworkVariable<float>(
         0f,
@@ -17,6 +22,7 @@ public class ExitZoneEnter : NetworkBehaviour
     );
     private bool timerActive = false;
     private readonly List<ulong> playersInZone = new List<ulong>();
+
 
     private void Awake()
     {
@@ -76,23 +82,27 @@ public class ExitZoneEnter : NetworkBehaviour
         }
     }
 
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Everyone)]
     private void StartTimerServerRpc()
     {
         if (timerActive) return;
-
+        audioSource.clip = enterSound;
+        audioSource.Stop();
+        audioSource.Play();
         timerActive = true;
         time.Value = 40f;
         exitZoneCanvas.SetActive(true);
         Debug.Log("[ExitZone] 타이머 시작");
     }
 
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Everyone)]
     private void StopTimerServerRpc()
     {
         if (!timerActive) return;
-
-        timerActive= false;
+        audioSource.clip = exitSound;
+        audioSource.Stop();
+        audioSource.Play(); 
+        timerActive = false;
         exitZoneCanvas.SetActive(false);
         Debug.Log("[ExitZone] 타이머 중지 (모두 퇴장)");
     }
@@ -113,14 +123,23 @@ public class ExitZoneEnter : NetworkBehaviour
 
     private void OnTimeChanged(float prev, float current)
     {
-        if(timerTxt != null)
+        int currentSecond = Mathf.CeilToInt(current);
+
+        if (timerTxt != null)
         {
             int seconds = Mathf.CeilToInt(current);
             timerTxt.text = $"{seconds:D2}s";
         }
+
         if (current <= 0f && exitZoneCanvas.activeSelf)
         {
+            audioSource.Stop();
             exitZoneCanvas.SetActive(false);
+        }
+        else if(current <= 10f && currentSecond != lastCountdownSecond)
+        {
+            audioSource.PlayOneShot(countDownSound);  
+            lastCountdownSecond = currentSecond;
         }
     }
 
