@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SOWeapon
   damage: 10
   cooltime: 0.3
-  maxAmmo: 30
+  maxAmmo: 15
   range: 100
   animationName: PistolFire
   bulletPrefab: {fileID: 5452723831288103129, guid: 5097f1b616b30374c80f9ba8002d5f75, type: 3}

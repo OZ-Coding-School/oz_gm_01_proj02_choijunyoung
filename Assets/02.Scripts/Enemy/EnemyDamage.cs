@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class EnemyDamage : NetworkBehaviour, IDamageable
 {
+    [SerializeField] AudioSource enemyAudioSource;
+    [SerializeField] AudioClip dieClip;
+
     private EnemyData enemyData;
     private float curhealth;
     [SerializeField] private ParticleSystem dieExplosion;
@@ -98,12 +101,50 @@ public class EnemyDamage : NetworkBehaviour, IDamageable
             dieExplosion.gameObject.SetActive(true);
             dieExplosion.Stop();
             dieExplosion.Play();
+            PlayDieSound();
+            PlayDieSoundClientRpc();
         }
         yield return new WaitForSeconds(1.5f);
         if (IsSpawned)
         {
             transform.root.GetComponent<NetworkObject>().Despawn(true);
         }
+    }
+
+    private void PlayDieSound()
+    {
+        AudioClip clipToPlay = dieClip;
+        if (clipToPlay == null || enemyAudioSource == null) return;
+
+        enemyAudioSource.PlayOneShot(clipToPlay);
+    }
+
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Everyone)]
+    private void PlayDieSoundClientRpc()
+    {
+        AudioClip clipToPlay = dieClip;
+        if (clipToPlay == null) return;
+
+        //소리 재생 메서드
+        PlaySoundtoDis(transform.position, clipToPlay, 100f);
+    }
+
+    private void PlaySoundtoDis(Vector3 enemyPosition, AudioClip currentClip, float maxDis)
+    {
+        GameObject tempEmitter = new GameObject("TempReloadSound");
+        tempEmitter.transform.position = enemyPosition;
+
+        AudioSource tempSource = tempEmitter.AddComponent<AudioSource>();
+        tempSource.spatialBlend = 1f;
+        tempSource.rolloffMode = AudioRolloffMode.Logarithmic;
+        tempSource.minDistance = 2f;
+        tempSource.maxDistance = maxDis;
+        tempSource.pitch = Random.Range(0.95f, 1.05f);
+
+        tempSource.PlayOneShot(currentClip, 1f);
+
+        // 클립 길이 후 자동 삭제
+        Destroy(tempEmitter, currentClip.length + 0.5f);
     }
 
 

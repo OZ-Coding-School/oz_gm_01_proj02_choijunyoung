@@ -29,15 +29,12 @@ public class EnemyShoot : NetworkBehaviour
     // 외부(AttackState)에서 호출할 발사 메서드
     public void TryShoot(Transform target)
     {
-        // Owner만 발사
-        //if (!IsOwner) return;
-
         if (Time.time < nextFireTime) return;
 
         if (ammoPool == null || firePoint == null || target == null) return;
 
         // 방향 계산
-        Vector3 dir = (target.position - firePoint.position).normalized;
+        Vector3 dir = (target.position + (Vector3.up * 1f)- firePoint.position).normalized;
         Quaternion bulletRot = Quaternion.LookRotation(dir);
 
         // 풀에서 총알 가져오기
@@ -70,4 +67,5 @@ public class EnemyShoot : NetworkBehaviour
 
         nextFireTime = Time.time + 0.3f;
     }
+
 }

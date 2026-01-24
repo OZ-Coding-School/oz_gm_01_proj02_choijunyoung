@@ -13,6 +13,8 @@ public class EnemyStateManager : NetworkBehaviour
 
     float _maxHP, _currentHP;
 
+    [SerializeField] public AudioClip shootClip;
+
     private void Start()
     {
         if (IsSpawned)
@@ -33,7 +35,7 @@ public class EnemyStateManager : NetworkBehaviour
     private void Update()
     {
         if (!IsSpawned || !NetworkObject.IsOwner) return;
-        CurrentState?.UpdateState(this); // 파라미터 뒤에 ?.null이 아닐때만 실행하란뜻
+        CurrentState?.UpdateState(this);
     }
 
     private void FixedUpdate()
@@ -60,5 +62,24 @@ public class EnemyStateManager : NetworkBehaviour
         {
             NetworkObject.ChangeOwnership(NetworkManager.Singleton.LocalClientId); // Host에게 양도
         }
+    }
+
+    
+    public void PlaySoundtoDis(Vector3 enemyPosition, AudioClip currentClip, float maxDis)
+    {
+        GameObject tempEmitter = new GameObject("TempReloadSound");
+        tempEmitter.transform.position = enemyPosition;
+
+        AudioSource tempSource = tempEmitter.AddComponent<AudioSource>();
+        tempSource.spatialBlend = 1f;
+        tempSource.rolloffMode = AudioRolloffMode.Logarithmic;
+        tempSource.minDistance = 2f;
+        tempSource.maxDistance = maxDis;
+        tempSource.pitch = Random.Range(0.95f, 1.05f);
+
+        tempSource.PlayOneShot(currentClip, 1f);
+
+        // 클립 길이 후 자동 삭제
+        Destroy(tempEmitter, currentClip.length + 0.5f);
     }
 }

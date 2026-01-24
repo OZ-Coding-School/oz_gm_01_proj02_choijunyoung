@@ -121,31 +121,18 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
         {
             Debug.Log($"[PlayerDamage] 플레이어 사망 (Client-{OwnerClientId})");
 
-            // 1. 사망 애니메이션 트리거 (모든 클라이언트에서)
-            if (anim != null)
-            {
-                anim.SetBool("IsDead", true);
-            }
-
-            // 2. 움직임 스크립트 비활성화 (로컬 플레이어만)
+            // 움직임 스크립트 비활성화 (로컬 플레이어만)
             if (IsOwner && playerMovementScript != null)
             {
                 playerMovementScript.enabled = false;
                 playerShootScript.enabled = false;
             }
 
-            // 3. 사망 UI 표시 (로컬 플레이어만)
+            // 사망 UI 표시 (로컬 플레이어만)
             if (IsOwner && deathUICanvas != null)
             {
                 deathUICanvas.SetActive(true);
                 Debug.Log("[PlayerDamage] 사망 UI 표시");
-            }
-
-            // 4. 카메라 흑백 효과 (로컬 플레이어만 적용 - Post Processing)
-            if (IsOwner && colorAdjustments != null)
-            {
-                colorAdjustments.saturation.value = -100f;  // 완전 흑백
-                Debug.Log("[PlayerDamage] 카메라 흑백 효과 적용");
             }
         }
     }
@@ -162,6 +149,7 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
             EnemyBullet enemyBullet = collision.gameObject.GetComponent<EnemyBullet>();
             if (bullet != null)
             {
+                if (bullet.OwnerClientId == OwnerClientId) return;
                 TakeDamage(bullet.bulletDamage.Value);
                 Debug.Log($"[PlayerDamage] Bullet 충돌! 데미지 {bullet.bulletDamage.Value} 받음 (Client-{OwnerClientId})");
             }
@@ -188,8 +176,10 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
 
         isDead.Value = true;
         currentHealth.Value = 0f;
-
-        deathUICanvas.SetActive(isDead.Value);
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+        StartCoroutine(DieAnimSequence());
+        StartCoroutine(DelayDisableScripts(0.5f));
 
         Debug.Log($"[PlayerDamage] 사망! Client-{OwnerClientId}");
 
@@ -208,7 +198,7 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
         {
             deathUICanvas.SetActive(false);
         }
-        yield return new WaitForSeconds(1.0f); // 사망 UI 충분히 보여주기
+        yield return new WaitForSeconds(1.0f);
 
         if (IsOwner)
         {
@@ -218,6 +208,8 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
 
     public void ExitSession()
     {
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
         StartCoroutine(ExitSessionCo());
     }
 
@@ -248,6 +240,32 @@ public class PlayerDamage : NetworkBehaviour, IDamageable
             SceneManager.LoadScene("TitleScene");
         }
     }
+    IEnumerator DelayDisableScripts(float delay)
+    {
+        
+
+        yield return new WaitForSeconds(delay);
+
+        if (playerMovementScript != null)
+            playerMovementScript.enabled = false;
+        if (playerShootScript != null)
+            playerShootScript.enabled = false;
+
+        // Death UI는 즉시 표시해도 OK
+        if (deathUICanvas != null)
+            deathUICanvas.SetActive(true);
+    }
+
+    IEnumerator DieAnimSequence()
+    {
+        // 사망 애니메이션 트리거 (모든 클라이언트에서)
+        if (anim != null)
+        {
+            anim.SetBool("IsDead", true);
+        }
+        yield return new WaitForSecondsRealtime(2.5f);
+    }
+
 
     public float GetCurrentHealth() => currentHealth.Value;
     public bool IsDead() => isDead.Value;
