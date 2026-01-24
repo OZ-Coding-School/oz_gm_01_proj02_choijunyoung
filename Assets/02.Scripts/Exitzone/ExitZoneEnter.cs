@@ -82,7 +82,7 @@ public class ExitZoneEnter : NetworkBehaviour
         }
     }
 
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Everyone)]
     private void StartTimerServerRpc()
     {
         if (timerActive) return;
@@ -95,7 +95,7 @@ public class ExitZoneEnter : NetworkBehaviour
         Debug.Log("[ExitZone] 타이머 시작");
     }
 
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Everyone)]
     private void StopTimerServerRpc()
     {
         if (!timerActive) return;

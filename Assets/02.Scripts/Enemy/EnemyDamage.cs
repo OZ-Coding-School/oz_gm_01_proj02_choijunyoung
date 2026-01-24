@@ -119,12 +119,32 @@ public class EnemyDamage : NetworkBehaviour, IDamageable
         enemyAudioSource.PlayOneShot(clipToPlay);
     }
 
-    [ClientRpc]
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Everyone)]
     private void PlayDieSoundClientRpc()
     {
-        if (IsOwner) return;
+        AudioClip clipToPlay = dieClip;
+        if (clipToPlay == null) return;
 
-        PlayDieSound();
+        //소리 재생 메서드
+        PlaySoundtoDis(transform.position, clipToPlay, 100f);
+    }
+
+    private void PlaySoundtoDis(Vector3 enemyPosition, AudioClip currentClip, float maxDis)
+    {
+        GameObject tempEmitter = new GameObject("TempReloadSound");
+        tempEmitter.transform.position = enemyPosition;
+
+        AudioSource tempSource = tempEmitter.AddComponent<AudioSource>();
+        tempSource.spatialBlend = 1f;
+        tempSource.rolloffMode = AudioRolloffMode.Logarithmic;
+        tempSource.minDistance = 2f;
+        tempSource.maxDistance = maxDis;
+        tempSource.pitch = Random.Range(0.95f, 1.05f);
+
+        tempSource.PlayOneShot(currentClip, 1f);
+
+        // 클립 길이 후 자동 삭제
+        Destroy(tempEmitter, currentClip.length + 0.5f);
     }
 
 

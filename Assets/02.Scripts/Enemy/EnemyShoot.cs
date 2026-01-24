@@ -29,9 +29,6 @@ public class EnemyShoot : NetworkBehaviour
     // 외부(AttackState)에서 호출할 발사 메서드
     public void TryShoot(Transform target)
     {
-        // Owner만 발사
-        //if (!IsOwner) return;
-
         if (Time.time < nextFireTime) return;
 
         if (ammoPool == null || firePoint == null || target == null) return;
@@ -70,4 +67,5 @@ public class EnemyShoot : NetworkBehaviour
 
         nextFireTime = Time.time + 0.3f;
     }
+
 }

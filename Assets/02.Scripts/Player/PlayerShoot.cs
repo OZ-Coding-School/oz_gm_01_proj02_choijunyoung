@@ -1,4 +1,4 @@
-using NUnit.Framework;
+ï»¿using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
@@ -11,6 +11,7 @@ public class PlayerShoot : NetworkBehaviour
     private string[] ATK_POSE = { "TakeRifle", "TakePistol" };
 
     private bool isReloading = false;
+    private AudioListener myListener;
 
     public List<int> magazineCount = new List<int>();
     private List<NetworkObject> activeBullets = new List<NetworkObject>();
@@ -49,6 +50,16 @@ public class PlayerShoot : NetworkBehaviour
         input = GetComponent<PlayerInputsManager>();
         aimManager = GetComponent<PlayerAimManager>();
 
+        myListener = GetComponentInChildren<AudioListener>(true);
+        if (myListener != null)
+        {
+            // ëª¨ë“  Listener ë¹„í™œì„±í™” í›„ ìê¸° ê²ƒë§Œ ì¼œê¸° (ë‹¤ë¥¸ í”Œë ˆì´ì–´ì˜ ListenerëŠ” êº¼ì§)
+            AudioListener[] allListeners = Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None);
+            foreach (var listener in allListeners)
+            {
+                listener.enabled = (listener == myListener);
+            }
+        }
     }
 
     public override void OnNetworkSpawn()
@@ -59,8 +70,8 @@ public class PlayerShoot : NetworkBehaviour
         {
             magazineCount.Add(weapon.maxAmmo);
             //    GameManager.Pool.CreatePool(weapon.bulletPrefab.GetComponent<NetworkObject>(), weapon.maxAmmo, parent, username);
-            //    var poolHandler = new NetworkedObjectPooling(weapon.bulletPrefab, username); // 20260116->³×Æ®¿öÅ© Ç®¸µÀ» À§ÇØ Ãß°¡µÊ.
-            //    NetworkManager.Singleton.PrefabHandler.AddHandler(weapon.bulletPrefab, poolHandler); // 20260116->³×Æ®¿öÅ© Ç®¸µÀ» À§ÇØ Ãß°¡µÊ.
+            //    var poolHandler = new NetworkedObjectPooling(weapon.bulletPrefab, username); // 20260116->ë„¤íŠ¸ì›Œí¬ í’€ë§ì„ ìœ„í•´ ì¶”ê°€ë¨.
+            //    NetworkManager.Singleton.PrefabHandler.AddHandler(weapon.bulletPrefab, poolHandler); // 20260116->ë„¤íŠ¸ì›Œí¬ í’€ë§ì„ ìœ„í•´ ì¶”ê°€ë¨.
         }
         netCurrentWeaponIndex.OnValueChanged += OnWeaponStateChanged;
         UpdateWeaponVisuals(netCurrentWeaponIndex.Value);
@@ -70,7 +81,7 @@ public class PlayerShoot : NetworkBehaviour
     public override void OnNetworkDespawn()
     {
         netCurrentWeaponIndex.OnValueChanged -= OnWeaponStateChanged;
-        // 20260116->³×Æ®¿öÅ© Ç®¸µÀ» À§ÇØ Ãß°¡µÊ.
+        // 20260116->ë„¤íŠ¸ì›Œí¬ í’€ë§ì„ ìœ„í•´ ì¶”ê°€ë¨.
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.PrefabHandler != null)
         {
             foreach (var weapon in weaponData)
@@ -78,7 +89,7 @@ public class PlayerShoot : NetworkBehaviour
                 NetworkManager.Singleton.PrefabHandler.RemoveHandler(weapon.bulletPrefab);
             }
         }
-        // 20260116->³×Æ®¿öÅ© Ç®¸µÀ» À§ÇØ Ãß°¡µÊ.
+        // 20260116->ë„¤íŠ¸ì›Œí¬ í’€ë§ì„ ìœ„í•´ ì¶”ê°€ë¨.
     }
 
     private void OnWeaponStateChanged(int previousValue, int newValue)
@@ -187,7 +198,7 @@ public class PlayerShoot : NetworkBehaviour
             }
             else
             {
-                Debug.Log("ÃÑ¾Ë ÇÁ¸®ÆÕ X");
+                Debug.Log("ì´ì•Œ í”„ë¦¬íŒ¹ X");
             }
         }
 
@@ -229,7 +240,7 @@ public class PlayerShoot : NetworkBehaviour
 
         Quaternion bulletRotation = Quaternion.LookRotation(dir);
 
-        // ObjectPoolSystemÀ¸·Î ±¸ÇöÇÑ ¹öÀü
+        // ObjectPoolSystemìœ¼ë¡œ êµ¬í˜„í•œ ë²„ì „
         var inst = currentPoolSystem.GetInstance(IsOwner);
         if (inst != null)
         {
@@ -253,11 +264,11 @@ public class PlayerShoot : NetworkBehaviour
         }
 
 
-        PlayMuzzleFlash(netCurrentWeaponIndex.Value); // ³»È­¸é Ãâ·Â
+        PlayMuzzleFlash(netCurrentWeaponIndex.Value); // ë‚´í™”ë©´ ì¶œë ¥
         PlayShotSound(netCurrentWeaponIndex.Value);
 
-        PlayMuzzleFlashClientRpc(netCurrentWeaponIndex.Value); // ´Ù¸¥ »ç¶÷ È­¸é Ãâ·Â
-        PlayShotSoundClientRpc(netCurrentWeaponIndex.Value);
+        PlayMuzzleFlashClientRpc(netCurrentWeaponIndex.Value); // ë‹¤ë¥¸ ì‚¬ëŒ í™”ë©´ ì¶œë ¥
+        PlayShotSoundClientRpc(netCurrentWeaponIndex.Value, transform.position);
 
     }
 
@@ -291,7 +302,7 @@ public class PlayerShoot : NetworkBehaviour
 
         particle.gameObject.SetActive(false);
     }
-    [ClientRpc]
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Everyone)]
     private void PlayMuzzleFlashClientRpc(int weaponIndex)
     {
 
@@ -316,19 +327,21 @@ public class PlayerShoot : NetworkBehaviour
 
         if (clipToPlay == null || weaponAudioSource == null) return;
 
-        weaponAudioSource.PlayOneShot(clipToPlay);
+Â Â Â Â Â Â Â Â weaponAudioSource.pitch = Random.Range(0.95f, 1.05f);
+Â Â Â Â Â Â Â Â weaponAudioSource.PlayOneShot(clipToPlay, Random.Range(0.9f, 1.1f));
 
-        weaponAudioSource.pitch = Random.Range(0.25f, 0.35f);
-        weaponAudioSource.PlayOneShot(clipToPlay, Random.Range(0.3f, 0.4f));
     }
 
-    [ClientRpc]
-    private void PlayShotSoundClientRpc(int weaponIndex)
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Everyone)]
+    private void PlayShotSoundClientRpc(int weaponIndex, Vector3 shooterPosition)
     {
-        if (IsOwner) return;
+        AudioClip clipToPlay = (weaponIndex == RIFLEINDEX) ? shotClips[0] : shotClips[1];
+        if (clipToPlay == null) return;
 
-        PlayShotSound(weaponIndex);
+        //ì†Œë¦¬ ì¬ìƒ ë©”ì„œë“œ
+        PlaySoundtoDis(shooterPosition, clipToPlay, 100f);
     }
+
 
     private void Reload(int num)
     {
@@ -362,7 +375,7 @@ public class PlayerShoot : NetworkBehaviour
             reloadMagazine[0].gameObject.SetActive(true);
             anim.SetTrigger("RifleReload");
             PlayReloadSound(netCurrentWeaponIndex.Value);
-            PlayReloadSoundClientRpc(netCurrentWeaponIndex.Value);
+            PlayReloadSoundClientRpc(netCurrentWeaponIndex.Value, transform.position);
             yield return new WaitForSeconds(2f);
             reloadMagazine[0].gameObject.SetActive(false);
         }
@@ -371,7 +384,7 @@ public class PlayerShoot : NetworkBehaviour
             reloadMagazine[1].gameObject.SetActive(true);
             anim.SetTrigger("PistolReload");
             PlayReloadSound(netCurrentWeaponIndex.Value);
-            PlayReloadSoundClientRpc(netCurrentWeaponIndex.Value);
+            PlayReloadSoundClientRpc(netCurrentWeaponIndex.Value, transform.position);
             yield return new WaitForSeconds(1.5f);
             reloadMagazine[0].gameObject.SetActive(false);
         }
@@ -387,12 +400,14 @@ public class PlayerShoot : NetworkBehaviour
         StartCoroutine(DelaySetMaxDistance());
     }
 
-    [ClientRpc]
-    private void PlayReloadSoundClientRpc(int weaponIndex)
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Everyone)]
+    private void PlayReloadSoundClientRpc(int weaponIndex, Vector3 shooterPosition)
     {
-        if (IsOwner) return;
+        AudioClip clipToPlay = reloadClip;
+        if (clipToPlay == null) return;
 
-        PlayShotSound(weaponIndex);
+        //ì†Œë¦¬ ì¬ìƒ ë©”ì„œë“œ
+        PlaySoundtoDis(shooterPosition, clipToPlay, 10f);
     }
     IEnumerator DelaySetMaxDistance()
     {
@@ -405,6 +420,23 @@ public class PlayerShoot : NetworkBehaviour
         yield return new WaitForSecondsRealtime(2f);
         isReloading = false;
     }
-    
+
+    private void PlaySoundtoDis(Vector3 shooterPosition, AudioClip currentClip, float maxDis)
+    {
+        GameObject tempEmitter = new GameObject("TempReloadSound");
+        tempEmitter.transform.position = shooterPosition;
+
+        AudioSource tempSource = tempEmitter.AddComponent<AudioSource>();
+        tempSource.spatialBlend = 1f;
+        tempSource.rolloffMode = AudioRolloffMode.Logarithmic;
+        tempSource.minDistance = 2f;
+        tempSource.maxDistance = maxDis;
+        tempSource.pitch = Random.Range(0.95f, 1.05f);
+
+        tempSource.PlayOneShot(currentClip, 1f);
+
+        // í´ë¦½ ê¸¸ì´ í›„ ìë™ ì‚­ì œ
+        Destroy(tempEmitter, currentClip.length + 0.5f);
+    }
 }
 

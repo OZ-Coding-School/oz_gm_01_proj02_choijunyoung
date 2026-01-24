@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
@@ -13,6 +14,8 @@ public class AttackState : IEnemyState
     AudioSource audio;
     AudioClip shootClip;
 
+
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Everyone)]
     public void EnterState(EnemyStateManager enemy)
     {
         Debug.Log("[Attack State] : State Entered");
@@ -31,9 +34,7 @@ public class AttackState : IEnemyState
             muzzle.gameObject.SetActive(true);
             muzzle.Stop();
             muzzle.Play();
-            audio.clip = shootClip;
-            audio.Stop();
-            audio.Play();
+            enemy.GetComponent<EnemyStateManager>().PlaySoundtoDis(enemy.gameObject.transform.position, shootClip, 100f);
         }
         
         // 공격 중에는 이동 완전 정지
@@ -47,7 +48,7 @@ public class AttackState : IEnemyState
         shootCoroutine = enemy.StartCoroutine(ContinuousShoot(enemy));
     }
 
-
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Everyone)]
     public void ExitState(EnemyStateManager enemy)
     {
         Debug.Log("[Attack State] : State Exited");
@@ -81,7 +82,6 @@ public class AttackState : IEnemyState
             yield return new WaitForSeconds(0.3f);  // 0.3초 쿨타임
         }
     }
-
     public void UpdateState(EnemyStateManager enemy)
     {
         EnemySight sight = enemy.GetComponent<EnemySight>();
@@ -119,4 +119,6 @@ public class AttackState : IEnemyState
             enemy.TransitionToState(new ChaseState());
         }
     }
+
+
 }
